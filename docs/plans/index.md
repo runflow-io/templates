@@ -1,6 +1,6 @@
 # Plans
 
-Index of every prototype/feature plan in this repo. Each plan lives in its own folder under one of three stage directories:
+Index of every template/feature plan in this repo. Each plan lives in its own folder under one of three stage directories:
 
 ```
 docs/plans/

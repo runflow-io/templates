@@ -1,9 +1,9 @@
-# prototypes-hub
+# runflow-templates
 
-A multi-framework prototype hosting hub. Each folder under `projects/` is an independent prototype — plain HTML, React, Vue, Nuxt, Next.js, whatever — and they all build and deploy together behind a single origin, each served at its own path.
+A hub for Runflow templates and demos. Each folder under `projects/` is an independent template — plain HTML, React, Vue, Nuxt, Next.js, whatever — and they all build and deploy together behind a single origin, each served at its own path.
 
 ```
-/                 → auto-generated index of all prototypes
+/                 → auto-generated index of all templates
 /example-html     → projects/example-html/   (plain HTML)
 /example-next     → projects/example-next/   (Next.js static export)
 ```
@@ -25,7 +25,7 @@ npm run dev
 
 ---
 
-## Adding a new prototype
+## Adding a new template
 
 1. Create a folder in `projects/` with your project files.
 2. If it needs a build step (React, Vue, Next, Nuxt, etc.), include a `package.json`.
@@ -60,7 +60,7 @@ For frameworks not auto-detected, add a `proto.config.json`:
 ```json
 {
   "type": "custom",
-  "title": "My Project",
+  "title": "My Template",
   "outputDir": "build"
 }
 ```
@@ -70,7 +70,7 @@ asset prefixes. `outputDir` is where your build writes (defaults to `dist`).
 
 ### `node-functions` projects
 
-For prototypes that need serverless functions plus a static dashboard (e.g. a
+For templates that need serverless functions plus a static dashboard (e.g. a
 cron job that writes to a DB and a dashboard that reads from it), use
 `node-functions`. The hub:
 
@@ -85,7 +85,7 @@ Example `proto.config.json`:
 ```json
 {
   "type": "node-functions",
-  "title": "My prototype",
+  "title": "My Template",
   "dashboard": {
     "dir": ".",
     "buildCmd": "npm run build",
@@ -126,9 +126,9 @@ For cron-protected endpoints, set `CRON_SECRET` in your host env. The platform
 injects `Authorization: Bearer ${CRON_SECRET}` on each fire and the handler
 should validate it.
 
-### Externally hosted prototypes
+### Externally hosted templates
 
-To list a prototype that lives on another origin in the landing index, add it to
+To list a template that lives on another origin in the landing index, add it to
 `externals.json`:
 
 ```json
@@ -162,18 +162,18 @@ Designed for **Vercel** (or any host that understands the Build Output API v3).
 ## Project structure
 
 ```
-prototypes-hub/
+runflow-templates/
 ├── build.mjs                 # Build orchestrator (detect → build → assemble)
 ├── build-node-functions.mjs  # esbuild bundling for node-functions projects
 ├── dev.mjs                   # Local dev server (build + serve on :3000)
 ├── dev-node-functions.mjs    # Dev-time dispatcher for node-functions
 ├── vercel.json               # Host config
-├── externals.json            # Externally hosted prototypes (landing links)
+├── externals.json            # Externally hosted templates (landing links)
 ├── package.json
 ├── docs/
 │   └── plans/                # Plan/design docs by stage (todo/progress/done)
 ├── projects/
-│   ├── example-html/         # Static HTML example
-│   └── example-next/         # Next.js static-export example
+│   ├── example-html/         # Static HTML template
+│   └── example-next/         # Next.js static-export template
 └── .vercel/output/           # Build output (gitignored)
 ```

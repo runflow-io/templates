@@ -1,16 +1,16 @@
-# prototypes-hub
+# runflow-templates
 
-Multi-framework prototype hosting hub.
+A hub for Runflow templates and demos.
 
 ## Architecture
 
-Each folder under `projects/` is an independent prototype that gets built and
+Each folder under `projects/` is an independent template that gets built and
 deployed as a path on a single deployment.
 
 ```
 /              → landing page (auto-generated index)
 /example-html  → projects/example-html/
-/my-prototype  → projects/my-prototype/
+/my-template   → projects/my-template/
 ```
 
 The build orchestrator (`build.mjs`) scans `projects/`, detects each project's
@@ -35,12 +35,19 @@ type, builds them in parallel, and assembles everything into `.vercel/output/`
 | `custom` | Build script + `proto.config.json` | `npm run build` |
 | `node-functions` | `proto.config.json` `"type": "node-functions"` | esbuild-bundled functions + static dashboard + crons (see README). Opt into multi-segment catch-all routing per function via `functions.perEntry["api/proxy.mjs"] = { catchAll: true }`. |
 
-## Adding a prototype
+## Adding a template
 
 1. Create `projects/<name>/`.
 2. Add project files (HTML, or a `package.json` with framework deps).
 3. For framework projects: `cd projects/<name> && npm install`.
 4. `npm run build` to test.
+
+## Branding
+
+This is a Runflow repo — UI should follow the Runflow brand: dark-first
+(`#09090B` ink, `#111113` cards), **amber `#FBBF24`** accent, Outfit for UI text
+and Space Mono for labels/code, and the `Run`*`flow`* wordmark (amber "flow").
+The `runflow-brand-guidelines` skill has the full design system.
 
 ## Plans + design docs
 
