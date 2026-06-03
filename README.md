@@ -148,7 +148,11 @@ Designed for **Vercel** (or any host that understands the Build Output API v3).
 - **Build command**: `npm run build`
 - **Output**: `.vercel/output/` (static assets + functions + `config.json`)
 - **Clean URLs**: `/example-next/about` resolves to `…/about.html`
-- **Indexable**: no `noindex` headers — pages are public and crawlable
+- **Indexable**: public and crawlable. Set `SITE_URL` (or rely on Vercel's
+  production URL) and the build emits `robots.txt` + `sitemap.xml` and adds
+  canonical/Open Graph tags. A template can opt out of indexing with
+  `"noindex": true` in its `template.config.json` (it's dropped from the sitemap
+  and gets a `robots` meta).
 
 ### Setup on Vercel
 

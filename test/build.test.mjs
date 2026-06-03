@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildVercelConfig, escapeHtml, safeHref, isValidProjectName } from "../build.mjs";
+import { buildVercelConfig, escapeHtml, safeHref, isValidProjectName, buildSitemap, buildRobotsTxt } from "../build.mjs";
 import { collectCronEntries } from "../build-node-functions.mjs";
 
 test("escapeHtml escapes HTML-significant characters", () => {
@@ -84,4 +84,20 @@ test("collectCronEntries prefixes project name and forces a trailing slash", () 
 
 test("collectCronEntries throws when a cron is missing path or schedule", () => {
   assert.throws(() => collectCronEntries("p", { crons: [{ path: "/x" }] }), /schedule/);
+});
+
+test("buildSitemap lists the landing + project roots and skips noindex projects", () => {
+  const xml = buildSitemap(
+    "https://x.test",
+    [{ name: "a", config: {} }, { name: "b", config: { noindex: true } }],
+    new Set(["b"])
+  );
+  assert.ok(xml.includes("<loc>https://x.test/</loc>"));
+  assert.ok(xml.includes("<loc>https://x.test/a/</loc>"));
+  assert.ok(!xml.includes("/b/"));
+});
+
+test("buildRobotsTxt allows all and includes Sitemap only when site URL is known", () => {
+  assert.ok(buildRobotsTxt("https://x.test").includes("Sitemap: https://x.test/sitemap.xml"));
+  assert.ok(!buildRobotsTxt("").includes("Sitemap:"));
 });
