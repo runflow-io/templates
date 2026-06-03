@@ -27,11 +27,30 @@ npm run dev
 
 ## Adding a new template
 
-1. Create a folder in `projects/` with your project files.
-2. If it needs a build step (React, Vue, Next, Nuxt, etc.), include a `package.json`.
+Fastest way — scaffold a starter:
+
+```bash
+npm run new -- my-thing next     # name + type
+npm run new                      # interactive
+```
+
+Types: `static` (default), `vite`, `next`, `nuxt`, `nuxt-server`, `custom`, `node-functions`.
+
+Or by hand:
+
+1. Create a folder in `projects/` with your project files. The name must be a
+   slug (`^[a-z0-9][a-z0-9-]*$`) — it becomes the URL path (`projects/my-thing/`
+   → `/my-thing/`). Non-slug folders are skipped by the build.
+2. If it needs a build step (React, Vue, Next, Nuxt, etc.), include a
+   `package.json` and a committed lockfile.
 3. Run `npm run build` from the root — it auto-detects the type and builds everything.
 
-That's it. The folder name becomes the URL path (`projects/my-thing/` → `/my-thing/`).
+`custom` and `node-functions` projects use a `template.config.json`. Reference
+the schema for editor validation:
+
+```json
+{ "$schema": "../../template.config.schema.json", "type": "custom", "outputDir": "build" }
+```
 
 ### Project type detection
 
