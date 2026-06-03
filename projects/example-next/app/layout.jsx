@@ -12,6 +12,7 @@ export default function RootLayout({ children }) {
       </head>
       <body style={{
         fontFamily: "'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        WebkitFontSmoothing: "antialiased",
         background: "#09090B",
         color: "#FAFAFA",
         maxWidth: 600,
@@ -25,9 +26,9 @@ export default function RootLayout({ children }) {
           borderBottom: "1px solid #27272A",
           paddingBottom: "1rem",
         }}>
-          <a href={`${basePath}/`} style={{ color: "#818CF8", textDecoration: "none", fontFamily: "'Space Mono', monospace", fontSize: "0.8125rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>Home</a>
-          <a href={`${basePath}/about`} style={{ color: "#818CF8", textDecoration: "none", fontFamily: "'Space Mono', monospace", fontSize: "0.8125rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>About</a>
-          <a href={`${basePath}/dashboard`} style={{ color: "#818CF8", textDecoration: "none", fontFamily: "'Space Mono', monospace", fontSize: "0.8125rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>Dashboard</a>
+          <a href={`${basePath}/`} style={{ color: "#FBBF24", textDecoration: "none", fontFamily: "'Space Mono', monospace", fontSize: "0.8125rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>Home</a>
+          <a href={`${basePath}/about`} style={{ color: "#FBBF24", textDecoration: "none", fontFamily: "'Space Mono', monospace", fontSize: "0.8125rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>About</a>
+          <a href={`${basePath}/dashboard`} style={{ color: "#FBBF24", textDecoration: "none", fontFamily: "'Space Mono', monospace", fontSize: "0.8125rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>Dashboard</a>
         </nav>
         {children}
       </body>
