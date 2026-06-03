@@ -103,6 +103,41 @@ function safeHref(href) {
   return "#";
 }
 
+// --- SEO --------------------------------------------------------------------
+const SITE_DESCRIPTION =
+  "Ready-to-run Runflow templates and demos — static, React/Vite, Nuxt, and " +
+  "Next.js starters plus serverless examples, built and deployed together.";
+const RUNFLOW_CTA_URL = "https://runflow.io/?utm_source=templates&utm_medium=hub";
+
+// Absolute origin of the deployed hub (for canonical / og:url / sitemap).
+// SITE_URL wins; on Vercel it falls back to the production URL; else "".
+function getSiteUrl() {
+  const raw =
+    process.env.SITE_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : "");
+  return raw.replace(/\/+$/, "");
+}
+
+function buildRobotsTxt(siteUrl) {
+  let out = "User-agent: *\nAllow: /\n";
+  if (siteUrl) out += `\nSitemap: ${siteUrl}/sitemap.xml\n`;
+  return out;
+}
+
+// Sitemap of the landing page + every built project root, minus opt-out
+// (template.config.json `"noindex": true`) projects.
+function buildSitemap(siteUrl, projects, noindexNames = new Set()) {
+  const locs = [`${siteUrl}/`];
+  for (const p of projects) {
+    if (noindexNames.has(p.name)) continue;
+    locs.push(`${siteUrl}/${p.name}/`);
+  }
+  const body = locs.map((l) => `  <url><loc>${escapeHtml(l)}</loc></url>`).join("\n");
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>\n`;
+}
+
 async function detectProjectType(projectDir) {
   const configPath = join(projectDir, "template.config.json");
   if (existsSync(configPath)) {
@@ -320,12 +355,30 @@ async function buildLandingPage(projects, externals) {
 
   const totalCount = defaultEntries.length + [...sectionMap.values()].reduce((a, l) => a + l.length, 0);
 
+  const siteUrl = getSiteUrl();
+  const ogImage = siteUrl && existsSync(join(ROOT, "public", "og.png")) ? `${siteUrl}/og.png` : "";
+  const headExtra = [
+    `  <meta name="description" content="${escapeHtml(SITE_DESCRIPTION)}">`,
+    `  <meta name="theme-color" content="#09090B">`,
+    `  <link rel="icon" href="/favicon.svg" type="image/svg+xml">`,
+    siteUrl && `  <link rel="canonical" href="${escapeHtml(siteUrl + "/")}">`,
+    `  <meta property="og:title" content="Runflow Templates">`,
+    `  <meta property="og:description" content="${escapeHtml(SITE_DESCRIPTION)}">`,
+    `  <meta property="og:type" content="website">`,
+    siteUrl && `  <meta property="og:url" content="${escapeHtml(siteUrl + "/")}">`,
+    ogImage && `  <meta property="og:image" content="${escapeHtml(ogImage)}">`,
+    `  <meta name="twitter:card" content="${ogImage ? "summary_large_image" : "summary"}">`,
+    `  <meta name="twitter:title" content="Runflow Templates">`,
+    `  <meta name="twitter:description" content="${escapeHtml(SITE_DESCRIPTION)}">`,
+  ].filter(Boolean).join("\n");
+
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Runflow Templates</title>
+${headExtra}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -474,6 +527,32 @@ async function buildLandingPage(projects, externals) {
       font-family: 'Space Mono', ui-monospace, monospace;
       color: #FBBF24;
     }
+
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-top: 1rem;
+      padding: 0.5rem 0.9rem;
+      background: #FBBF24;
+      color: #09090B;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    .cta:hover { background: #FCD34D; }
+
+    footer {
+      margin-top: 4rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #27272A;
+      color: #71717A;
+      font-size: 0.8125rem;
+    }
+    footer a { color: #FBBF24; text-decoration: none; }
+    footer a:hover { color: #FDE68A; }
   </style>
 </head>
 <body>
@@ -484,10 +563,13 @@ async function buildLandingPage(projects, externals) {
       </div>
       <h1>Run<span>flow</span> Templates</h1>
       <p class="subtitle">${totalCount} template${totalCount !== 1 ? "s" : ""}</p>
+      <a class="cta" href="${RUNFLOW_CTA_URL}" target="_blank" rel="noopener">Build with Runflow ↗</a>
     </header>
     ${sectionBlocks}
     ${defaultBlock}
+    <footer>Built with <a href="${RUNFLOW_CTA_URL}" target="_blank" rel="noopener">Runflow</a> · <a href="https://github.com/runflow-io/templates" target="_blank" rel="noopener">Source on GitHub</a></footer>
   </div>
+  <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>`;
 
@@ -732,6 +814,29 @@ async function main() {
     await cp(faviconSrc, join(VERCEL_OUTPUT, "static", "favicon.ico"));
   }
 
+  // Selective noindex: templates that opt out via template.config.json
+  // `"noindex": true` get a robots meta injected and are dropped from the sitemap.
+  const noindexNames = new Set(built.filter((p) => p.config?.noindex).map((p) => p.name));
+  for (const name of noindexNames) {
+    const indexPath = join(VERCEL_OUTPUT, "static", name, "index.html");
+    if (!existsSync(indexPath)) continue;
+    const html = await readFile(indexPath, "utf-8");
+    if (!/name=["']robots["']/i.test(html)) {
+      await writeFile(indexPath, html.replace(/<head([^>]*)>/i, `<head$1>\n  <meta name="robots" content="noindex">`));
+      console.log(`  [${name}] Marked noindex`);
+    }
+  }
+
+  // robots.txt (always) + sitemap.xml (when the site URL is known)
+  const siteUrl = getSiteUrl();
+  await writeFile(join(VERCEL_OUTPUT, "static", "robots.txt"), buildRobotsTxt(siteUrl));
+  if (siteUrl) {
+    await writeFile(join(VERCEL_OUTPUT, "static", "sitemap.xml"), buildSitemap(siteUrl, built, noindexNames));
+    console.log(`robots.txt + sitemap.xml generated (${siteUrl}).`);
+  } else {
+    console.log("robots.txt generated — set SITE_URL for canonical URLs + sitemap.xml.");
+  }
+
   // Generate .vercel/output/config.json
   await generateVercelConfig(built, allCrons);
   console.log(`Vercel config generated${allCrons.length > 0 ? ` (${allCrons.length} cron(s))` : ""}.`);
@@ -740,7 +845,7 @@ async function main() {
 }
 
 // Exported for unit tests (test/build.test.mjs).
-export { buildVercelConfig, escapeHtml, safeHref, isValidProjectName, detectProjectType };
+export { buildVercelConfig, escapeHtml, safeHref, isValidProjectName, detectProjectType, buildSitemap, buildRobotsTxt };
 
 // Only run the build when executed directly (`node build.mjs`), not when imported.
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
