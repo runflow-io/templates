@@ -17,6 +17,8 @@ import { readdir, readFile, cp, rm, mkdir, stat, writeFile } from "node:fs/promi
 import { join, resolve } from "node:path";
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
+import { availableParallelism } from "node:os";
+import { fileURLToPath } from "node:url";
 import { emitNodeFunctionsProject, copyNodeFunctionsArtifacts } from "./build-node-functions.mjs";
 
 function run(cmd, opts = {}) {
@@ -26,14 +28,43 @@ function run(cmd, opts = {}) {
       stdio: ["ignore", "pipe", "pipe"],
     });
     let stdout = "", stderr = "";
+    // Guard against settling twice and handle spawn errors — without an `error`
+    // handler a failed spawn (e.g. missing `sh`, ENOMEM) leaves the promise
+    // pending forever and hangs the whole build.
+    let settled = false;
+    const settle = (fn, arg) => { if (!settled) { settled = true; fn(arg); } };
     child.stdout.on("data", (d) => (stdout += d));
     child.stderr.on("data", (d) => (stderr += d));
+    child.on("error", (err) => settle(reject, new Error(`spawn failed for "${cmd}": ${err.message}`)));
     child.on("close", (code) => {
-      if (code !== 0) reject(new Error(`exit ${code}\n${stderr || stdout}`));
-      else resolve({ stdout, stderr });
+      if (code !== 0) settle(reject, new Error(`exit ${code}\n${stderr || stdout}`));
+      else settle(resolve, { stdout, stderr });
     });
   });
 }
+
+// Bounded-concurrency map returning Promise.allSettled-shaped results, so a
+// large hub doesn't fire one install/build per project all at once.
+async function mapLimit(items, limit, fn) {
+  const results = new Array(items.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < items.length) {
+      const idx = next++;
+      try {
+        results[idx] = { status: "fulfilled", value: await fn(items[idx], idx) };
+      } catch (reason) {
+        results[idx] = { status: "rejected", reason };
+      }
+    }
+  };
+  await Promise.all(
+    Array.from({ length: Math.max(1, Math.min(limit, items.length)) }, worker)
+  );
+  return results;
+}
+
+const BUILD_CONCURRENCY = Math.max(1, availableParallelism() - 1);
 
 const ROOT = resolve(import.meta.dirname);
 const PROJECTS_DIR = join(ROOT, "projects");
@@ -108,7 +139,9 @@ async function detectProjectType(projectDir) {
 }
 
 function detectInstallCmd(projectDir) {
-  if (existsSync(join(projectDir, "package-lock.json"))) return "npm install";
+  // Reproducible installs: when a lockfile exists, use the locked-install form so
+  // a build can't silently float to a fresh patch within the same semver range.
+  if (existsSync(join(projectDir, "package-lock.json"))) return "npm ci";
   if (existsSync(join(projectDir, "pnpm-lock.yaml"))) return "pnpm install --frozen-lockfile";
   if (existsSync(join(projectDir, "bun.lockb"))) return "bun install --frozen-lockfile";
   return "npm install";
@@ -463,50 +496,49 @@ async function buildLandingPage(projects, externals) {
   await writeFile(join(staticDir, "index.html"), html);
 }
 
-async function generateVercelConfig(projects, crons = []) {
+// Pure: compute the Build Output API v3 config object from the project list.
+// Kept side-effect-free so it can be unit-tested (see test/build.test.mjs).
+function buildVercelConfig(projects, crons = []) {
   const serverProjects = projects.filter((p) => p.config.type === "nuxt-server");
 
   const routes = [];
 
-  // Add routes for each server project
+  // API routes for each server project go to the Nitro __fallback function.
   for (const p of serverProjects) {
-    // API routes go to the Nitro __fallback function
-    routes.push({
-      src: `/${p.name}/api/(.*)`,
-      dest: `/${p.name}/__fallback`,
-    });
+    routes.push({ src: `/${p.name}/api/(.*)`, dest: `/${p.name}/__fallback` });
   }
 
-  // Strip trailing slash from dynamic [param] paths in node-functions projects.
-  // `trailingSlash: true` 308-redirects /api/reports/UUID -> /api/reports/UUID/,
-  // and Vercel BOA's filesystem matcher won't pair the trailing-slash form with
-  // a `[param].func` entry. Rewrite the slash form back to no-slash so the
-  // dynamic match fires.
+  // node-functions dynamic routing. `trailingSlash: true` 308-redirects
+  // /api/x/UUID -> /api/x/UUID/, and Vercel BOA's filesystem matcher won't pair
+  // the slash form with a `[param].func` entry, so we route dynamic paths to the
+  // PARENT function and pass the captured segment via query string.
   const reEscape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const fnProjects = projects.filter((p) => p.config.type === "node-functions");
   for (const p of fnProjects) {
     const entries = p.config.functions?.entries || [];
     const perEntry = p.config.functions?.perEntry || {};
     for (const entry of entries) {
-      // Single-segment dynamic [id] entries: rewrite /<name>/<parent>/<seg> ->
-      // /<name>/<parent>?subId=<seg>. Vercel BOA's filesystem matcher doesn't
-      // auto-resolve `[param].func` dynamic routing — the .func directory name
-      // is treated literally — so we route dynamic paths to the PARENT function
-      // and pass the captured segment via query string.
+      // Single trailing dynamic segment: /<name>/<parent>/<seg> -> ?subId=<seg>.
       const m = entry.match(/^(.+?)\/\[([^\]]+)\]\.(?:mjs|js)$/);
       if (m) {
         const [, parentPath] = m;
+        // Fail fast on multi-segment dynamic paths — they'd silently emit a route
+        // to a non-existent function and 404 in prod. Use one trailing [id].mjs
+        // (parent reads ?subId=) or a catchAll entry instead.
+        if (parentPath.includes("[")) {
+          throw new Error(
+            `template.config.json (${p.name}): function entry "${entry}" has multiple dynamic [param] segments, which isn't supported. Use a single trailing [id].mjs or a catchAll entry.`
+          );
+        }
         routes.push({
           src: `^/${reEscape(p.name)}/${reEscape(parentPath)}/([^/]+)/?$`,
           dest: `/${p.name}/${parentPath}?subId=$1`,
         });
         continue;
       }
-      // Catch-all opt-in via template.config.json:
-      //   functions.perEntry["api/proxy.mjs"] = { catchAll: true }
-      // Routes /<name>/<entry>/<arbitrary multi-segment path> to the function
-      // with the remainder in ?subPath=. Handy for API proxies that forward
-      // arbitrary upstream paths (e.g. /v1/resource/.../items).
+      // Catch-all opt-in: functions.perEntry["api/proxy.mjs"] = { catchAll: true }
+      // routes /<name>/<entry>/<multi/segment> to the function with the remainder
+      // in ?subPath= (handy for API proxies forwarding arbitrary upstream paths).
       const cleanRel = entry.replace(/\.m?js$/, "");
       if (perEntry[entry]?.catchAll) {
         routes.push({
@@ -517,25 +549,25 @@ async function generateVercelConfig(projects, crons = []) {
     }
   }
 
-  // Filesystem fallback (serves static files + node-functions automatically by path)
+  // Filesystem fallback (serves static files + node-functions automatically).
   routes.push({ handle: "filesystem" });
 
-  // SPA fallback for server projects — Nitro serves the SPA shell
+  // SPA fallback for server projects — Nitro serves the SPA shell.
   for (const p of serverProjects) {
-    routes.push({
-      src: `/${p.name}(?:/((?!api/).*))?`,
-      dest: `/${p.name}/__fallback`,
-    });
+    routes.push({ src: `/${p.name}(?:/((?!api/).*))?`, dest: `/${p.name}/__fallback` });
   }
 
   const config = { version: 3, cleanUrls: true, trailingSlash: true, routes };
   if (Array.isArray(crons) && crons.length > 0) {
     config.crons = crons;
   }
+  return config;
+}
 
+async function generateVercelConfig(projects, crons = []) {
   await writeFile(
     join(VERCEL_OUTPUT, "config.json"),
-    JSON.stringify(config, null, 2)
+    JSON.stringify(buildVercelConfig(projects, crons), null, 2)
   );
 }
 
@@ -583,17 +615,15 @@ async function main() {
     projects.push({ name, config, dir: projectDir });
   }
 
-  // Build all projects in parallel
-  console.log(`Found ${projects.length} project(s) — building in parallel:\n`);
+  // Build all projects with bounded concurrency
+  console.log(`Found ${projects.length} project(s) — building (up to ${BUILD_CONCURRENCY} at a time):\n`);
   const buildStart = Date.now();
 
-  const results = await Promise.allSettled(
-    projects.map(async (p) => {
-      const t0 = Date.now();
-      const { logs, crons } = await buildProject(p.name, p.dir, p.config);
-      return { ms: Date.now() - t0, logs, crons };
-    })
-  );
+  const results = await mapLimit(projects, BUILD_CONCURRENCY, async (p) => {
+    const t0 = Date.now();
+    const { logs, crons } = await buildProject(p.name, p.dir, p.config);
+    return { ms: Date.now() - t0, logs, crons };
+  });
 
   const allCrons = [];
   let failed = 0;
@@ -629,10 +659,14 @@ async function main() {
     process.exitCode = 1;
   }
 
+  // Only assemble + index projects that actually built — never copy partial or
+  // empty output from a failed project into the deployment.
+  const built = projects.filter((_, i) => results[i].status === "fulfilled");
+
   // Assembly phase: populate .vercel/output/
   console.log("Assembling Vercel Build Output API v3 structure...\n");
 
-  for (const p of projects) {
+  for (const p of built) {
     const type = p.config.type || "static";
 
     if (type === "nuxt-server") {
@@ -689,7 +723,7 @@ async function main() {
   }
 
   // Generate landing page at .vercel/output/static/index.html
-  await buildLandingPage(projects, externals);
+  await buildLandingPage(built, externals);
   console.log("\nLanding page generated.");
 
   // Copy favicon if exists
@@ -699,13 +733,19 @@ async function main() {
   }
 
   // Generate .vercel/output/config.json
-  await generateVercelConfig(projects, allCrons);
+  await generateVercelConfig(built, allCrons);
   console.log(`Vercel config generated${allCrons.length > 0 ? ` (${allCrons.length} cron(s))` : ""}.`);
 
   console.log(`\nBuild complete → .vercel/output/`);
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+// Exported for unit tests (test/build.test.mjs).
+export { buildVercelConfig, escapeHtml, safeHref, isValidProjectName, detectProjectType };
+
+// Only run the build when executed directly (`node build.mjs`), not when imported.
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}
