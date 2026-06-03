@@ -1,0 +1,12 @@
+# Default owner for everything.
+* @miguelrisero
+
+# Build system, dev server, CI, and hub config need maintainer review —
+# these run code at build time and govern every template's behavior.
+/build.mjs @miguelrisero
+/build-node-functions.mjs @miguelrisero
+/dev.mjs @miguelrisero
+/dev-node-functions.mjs @miguelrisero
+/vercel.json @miguelrisero
+/externals.json @miguelrisero
+/.github/ @miguelrisero
