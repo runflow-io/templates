@@ -32,8 +32,8 @@ type, builds them in parallel, and assembles everything into `.vercel/output/`
 | `next` | Has `next` in deps | `next build` with static export |
 | `nuxt` | Has `nuxt` in deps | `nuxi generate` with base URL |
 | `nuxt-server` | Has `nuxt` + `server/` dir | Nitro Vercel preset (SSR + functions) |
-| `custom` | Build script + `proto.config.json` | `npm run build` |
-| `node-functions` | `proto.config.json` `"type": "node-functions"` | esbuild-bundled functions + static dashboard + crons (see README). Opt into multi-segment catch-all routing per function via `functions.perEntry["api/proxy.mjs"] = { catchAll: true }`. |
+| `custom` | Build script + `template.config.json` | `npm run build` |
+| `node-functions` | `template.config.json` `"type": "node-functions"` | esbuild-bundled functions + static dashboard + crons (see README). Opt into multi-segment catch-all routing per function via `functions.perEntry["api/proxy.mjs"] = { catchAll: true }`. |
 
 ## Adding a template
 

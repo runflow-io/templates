@@ -1,4 +1,4 @@
-// Build helpers for the `node-functions` proto.config.json type.
+// Build helpers for the `node-functions` template.config.json type.
 // Bundles each Vercel function entry with esbuild, writes the .vc-config.json,
 // and returns the cron entries to be merged into the hub's root config.json.
 
@@ -33,19 +33,19 @@ function detectInstallCmd(projectDir) {
   return "npm install";
 }
 
-// Reject path config that would let a malicious proto.config.json reach outside
-// of its own project directory (defence in depth — proto.config.json is in-repo
+// Reject path config that would let a malicious template.config.json reach outside
+// of its own project directory (defence in depth — template.config.json is in-repo
 // and reviewed, but the helper shouldn't trust unsanitized paths). For paths
 // that already exist on disk we also resolve symlinks so they can't tunnel out.
 function ensureInsideProject(projectDir, relPath, label) {
   if (typeof relPath !== "string" || relPath.length === 0) return;
   if (isAbsolute(relPath)) {
-    throw new Error(`proto.config.json: ${label} must be relative; got "${relPath}"`);
+    throw new Error(`template.config.json: ${label} must be relative; got "${relPath}"`);
   }
   const resolved = join(projectDir, relPath);
   const lexicalRel = relative(projectDir, resolved);
   if (lexicalRel.startsWith("..") || isAbsolute(lexicalRel)) {
-    throw new Error(`proto.config.json: ${label} "${relPath}" escapes the project directory`);
+    throw new Error(`template.config.json: ${label} "${relPath}" escapes the project directory`);
   }
   if (existsSync(resolved)) {
     let realProject, realResolved;
@@ -57,7 +57,7 @@ function ensureInsideProject(projectDir, relPath, label) {
     }
     const physicalRel = relative(realProject, realResolved);
     if (physicalRel.startsWith("..") || isAbsolute(physicalRel)) {
-      throw new Error(`proto.config.json: ${label} "${relPath}" resolves outside the project directory via symlink`);
+      throw new Error(`template.config.json: ${label} "${relPath}" resolves outside the project directory via symlink`);
     }
   }
 }
@@ -106,7 +106,7 @@ export async function bundleNodeFunction({ projectDir, entry, outDir, maxDuratio
 export async function emitNodeFunctionsProject({ projectDir, projectName, distTarget, config }) {
   const logs = [];
 
-  // Validate path inputs so a misbehaving proto.config.json can't escape the project.
+  // Validate path inputs so a misbehaving template.config.json can't escape the project.
   if (config.dashboard) {
     ensureInsideProject(projectDir, config.dashboard.dir || ".", "dashboard.dir");
     ensureInsideProject(projectDir, config.dashboard.outputDir || "dist", "dashboard.outputDir");
@@ -115,7 +115,7 @@ export async function emitNodeFunctionsProject({ projectDir, projectName, distTa
   const entries = Array.isArray(fnConfig.entries) ? fnConfig.entries : [];
   entries.forEach((entry, i) => {
     if (typeof entry !== "string" || entry.length === 0) {
-      throw new Error(`proto.config.json: functions.entries[${i}] must be a non-empty string; got ${JSON.stringify(entry)}`);
+      throw new Error(`template.config.json: functions.entries[${i}] must be a non-empty string; got ${JSON.stringify(entry)}`);
     }
     ensureInsideProject(projectDir, entry, `functions.entries[${i}]`);
   });
@@ -168,7 +168,7 @@ export function collectCronEntries(projectName, config) {
   const list = Array.isArray(config?.crons) ? config.crons : [];
   return list.map((c, index) => {
     if (!c || typeof c.path !== "string" || c.path.length === 0 || typeof c.schedule !== "string" || c.schedule.length === 0) {
-      throw new Error(`proto.config.json: crons[${index}] must include both \`path\` and \`schedule\` strings`);
+      throw new Error(`template.config.json: crons[${index}] must include both \`path\` and \`schedule\` strings`);
     }
     const prefixed = c.path.startsWith("/") ? `/${projectName}${c.path}` : `/${projectName}/${c.path}`;
     // Hub config emits trailingSlash:true, which 308-redirects function paths
