@@ -37,10 +37,12 @@ type, builds them in parallel, and assembles everything into `.vercel/output/`
 
 ## Adding a template
 
-1. Create `projects/<name>/`.
-2. Add project files (HTML, or a `package.json` with framework deps).
-3. For framework projects: `cd projects/<name> && npm install`.
-4. `npm run build` to test.
+- Scaffold: `npm run new -- <name> <type>` (types: static, vite, next, nuxt,
+  nuxt-server, custom, node-functions). Or interactively: `npm run new`.
+- By hand: create `projects/<name>/` (name must be a slug `[a-z0-9-]`), add files
+  (HTML, or a `package.json` with framework deps + lockfile), then `npm run build`.
+- `custom` / `node-functions` use `template.config.json` (validated by
+  `template.config.schema.json` — reference it via `"$schema": "../../template.config.schema.json"`).
 
 ## Branding
 
