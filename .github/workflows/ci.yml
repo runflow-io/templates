@@ -60,5 +60,8 @@ jobs:
             done
           fi
 
+      - name: Run tests
+        run: npm test
+
       - name: Build all templates
         run: npm run build
