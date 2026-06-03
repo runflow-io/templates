@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    name: Build & verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install hub dependencies
+        run: npm ci
+
+      - name: Syntax-check orchestrator scripts
+        run: |
+          for f in build.mjs dev.mjs build-node-functions.mjs dev-node-functions.mjs; do
+            node --check "$f"
+          done
+
+      # No TypeScript in the repo yet — when a project adds a tsconfig.json,
+      # this step type-checks it. Until then it's a no-op that never fails.
+      - name: Type-check (if any tsconfig present)
+        run: |
+          shopt -s globstar nullglob
+          # nullglob drops unmatched globs, but a literal path stays even when
+          # absent — so filter the candidates down to files that actually exist.
+          present=()
+          for cfg in tsconfig.json projects/**/tsconfig.json; do
+            [ -f "$cfg" ] && present+=("$cfg")
+          done
+          if [ ${#present[@]} -eq 0 ]; then
+            echo "No tsconfig.json found — skipping type-check."
+          else
+            for cfg in "${present[@]}"; do
+              echo "Type-checking $cfg"
+              npx --yes --package=typescript tsc --noEmit -p "$cfg"
+            done
+          fi
+
+      - name: Build all prototypes
+        run: npm run build
