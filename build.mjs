@@ -10,7 +10,7 @@
  *   - next:         Next.js with static export
  *   - nuxt:         Nuxt 3 with static generation
  *   - nuxt-server:  Nuxt 3 with server routes (SSR via Vercel serverless)
- *   - custom:       Any framework with a `build` script + `outputDir` in proto.config.json
+ *   - custom:       Any framework with a `build` script + `outputDir` in template.config.json
  */
 
 import { readdir, readFile, cp, rm, mkdir, stat, writeFile } from "node:fs/promises";
@@ -41,7 +41,7 @@ const DIST_DIR = join(ROOT, "dist");
 const VERCEL_OUTPUT = join(ROOT, ".vercel", "output");
 
 async function detectProjectType(projectDir) {
-  const configPath = join(projectDir, "proto.config.json");
+  const configPath = join(projectDir, "template.config.json");
   if (existsSync(configPath)) {
     const config = JSON.parse(await readFile(configPath, "utf-8"));
     return config;
@@ -101,7 +101,7 @@ async function buildProject(name, projectDir, config) {
         recursive: true,
         filter: (src) => {
           const base = src.split("/").pop();
-          return !["node_modules", ".git", "proto.config.json"].includes(base);
+          return !["node_modules", ".git", "template.config.json"].includes(base);
         },
       });
       break;
@@ -181,7 +181,7 @@ async function loadExternals() {
 
 async function buildLandingPage(projects, externals) {
   // Projects can opt into a named section by declaring `section` + `demos`
-  // in proto.config.json. Each demo becomes its own card under the section
+  // in template.config.json. Each demo becomes its own card under the section
   // header, instead of the parent project getting a single tile.
   const sectionMap = new Map(); // section title -> cards[]
   const defaultEntries = [];
@@ -254,7 +254,6 @@ async function buildLandingPage(projects, externals) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="robots" content="noindex, nofollow">
   <title>Runflow Templates</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -429,14 +428,7 @@ async function buildLandingPage(projects, externals) {
 async function generateVercelConfig(projects, crons = []) {
   const serverProjects = projects.filter((p) => p.config.type === "nuxt-server");
 
-  const routes = [
-    // Global headers
-    {
-      src: "/(.*)",
-      headers: { "X-Robots-Tag": "noindex, nofollow" },
-      continue: true,
-    },
-  ];
+  const routes = [];
 
   // Add routes for each server project
   for (const p of serverProjects) {
@@ -472,7 +464,7 @@ async function generateVercelConfig(projects, crons = []) {
         });
         continue;
       }
-      // Catch-all opt-in via proto.config.json:
+      // Catch-all opt-in via template.config.json:
       //   functions.perEntry["api/proxy.mjs"] = { catchAll: true }
       // Routes /<name>/<entry>/<arbitrary multi-segment path> to the function
       // with the remainder in ?subPath=. Handy for API proxies that forward

@@ -42,8 +42,8 @@ That's it. The folder name becomes the URL path (`projects/my-thing/` → `/my-t
 | `next` | `next` in dependencies | `next build` (static export) |
 | `nuxt` | `nuxt` in dependencies | `nuxi generate` (static generation) |
 | `nuxt-server` | `nuxt` + a `server/` directory | Nuxt with `NITRO_PRESET=vercel` (server functions) |
-| `custom` | Build script + `proto.config.json` | `npm run build` + copy output |
-| `node-functions` | `proto.config.json` with `"type": "node-functions"` | esbuild-bundled serverless functions + a static dashboard + cron registration |
+| `custom` | Build script + `template.config.json` | `npm run build` + copy output |
+| `node-functions` | `template.config.json` with `"type": "node-functions"` | esbuild-bundled serverless functions + a static dashboard + cron registration |
 
 The right base path is passed to each build via an env var so assets resolve
 under `/<name>/`:
@@ -55,7 +55,7 @@ under `/<name>/`:
 
 ### Custom projects
 
-For frameworks not auto-detected, add a `proto.config.json`:
+For frameworks not auto-detected, add a `template.config.json`:
 
 ```json
 {
@@ -80,7 +80,7 @@ cron job that writes to a DB and a dashboard that reads from it), use
    API v3 function format (`.func/{index.mjs,.vc-config.json}`).
 4. Registers any `crons[]` you declare into the deployment's root `config.json`.
 
-Example `proto.config.json`:
+Example `template.config.json`:
 
 ```json
 {
@@ -148,7 +148,7 @@ Designed for **Vercel** (or any host that understands the Build Output API v3).
 - **Build command**: `npm run build`
 - **Output**: `.vercel/output/` (static assets + functions + `config.json`)
 - **Clean URLs**: `/example-next/about` resolves to `…/about.html`
-- **Headers**: `noindex, nofollow` on all routes
+- **Indexable**: no `noindex` headers — pages are public and crawlable
 
 ### Setup on Vercel
 
