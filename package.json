@@ -1,8 +1,8 @@
 {
-  "name": "prototypes-hub",
+  "name": "runflow-templates",
   "private": true,
   "version": "1.0.0",
-  "description": "Multi-framework prototype hosting hub — build many small projects and deploy them together",
+  "description": "Runflow templates and demos — build many small projects and deploy them together",
   "scripts": {
     "build": "node build.mjs",
     "dev": "node dev.mjs"
