@@ -1,5 +1,5 @@
 /**
- * Build orchestrator for the prototypes hub
+ * Build orchestrator for Runflow Templates
  *
  * Scans /projects, detects each project's type, builds it,
  * and assembles all output into .vercel/output/ (Build Output API v3).
@@ -245,7 +245,7 @@ async function buildLandingPage(projects, externals) {
 
   const defaultBlock = defaultEntries.length > 0
     ? `<div class="project-grid">${defaultEntries.map(renderCard).join("\n")}</div>`
-    : `<div class="empty-state">No prototypes yet.<br>Run <code>npm run new</code> to create one.</div>`;
+    : `<div class="empty-state">No templates yet.<br>Add a folder under <code>projects/</code> to create one.</div>`;
 
   const totalCount = defaultEntries.length + [...sectionMap.values()].reduce((a, l) => a + l.length, 0);
 
@@ -255,7 +255,7 @@ async function buildLandingPage(projects, externals) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <title>Prototypes</title>
+  <title>Runflow Templates</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -264,6 +264,7 @@ async function buildLandingPage(projects, externals) {
 
     body {
       font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
       background: #09090B;
       color: #FAFAFA;
       min-height: 100vh;
@@ -290,7 +291,7 @@ async function buildLandingPage(projects, externals) {
       width: 48px;
       height: 14px;
       border-radius: 7px;
-      background: linear-gradient(90deg, #09090B, #818CF8);
+      background: linear-gradient(90deg, #09090B, #FBBF24);
     }
 
     h1 {
@@ -300,7 +301,7 @@ async function buildLandingPage(projects, externals) {
     }
 
     h1 span {
-      color: #818CF8;
+      color: #FBBF24;
     }
 
     .subtitle {
@@ -322,7 +323,7 @@ async function buildLandingPage(projects, externals) {
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: #818CF8;
+      color: #FBBF24;
       margin-bottom: 0.875rem;
       padding-bottom: 0.625rem;
       border-bottom: 1px solid #27272A;
@@ -348,7 +349,7 @@ async function buildLandingPage(projects, externals) {
     }
 
     .project-card:hover {
-      border-color: rgba(129, 140, 248, 0.2);
+      border-color: rgba(251, 191, 36, 0.2);
       background: #18181B;
     }
 
@@ -401,7 +402,7 @@ async function buildLandingPage(projects, externals) {
       border-radius: 6px;
       font-size: 0.875rem;
       font-family: 'Space Mono', ui-monospace, monospace;
-      color: #818CF8;
+      color: #FBBF24;
     }
   </style>
 </head>
@@ -411,8 +412,8 @@ async function buildLandingPage(projects, externals) {
       <div class="logo">
         <div class="logo-mark"></div>
       </div>
-      <h1>Proto<span>types</span></h1>
-      <p class="subtitle">${totalCount} prototype${totalCount !== 1 ? "s" : ""}</p>
+      <h1>Run<span>flow</span> Templates</h1>
+      <p class="subtitle">${totalCount} template${totalCount !== 1 ? "s" : ""}</p>
     </header>
     ${sectionBlocks}
     ${defaultBlock}
@@ -509,7 +510,7 @@ async function generateVercelConfig(projects, crons = []) {
 }
 
 async function main() {
-  console.log("prototypes hub build\n");
+  console.log("runflow-templates build\n");
 
   // Clean dist (intermediate) and .vercel/output (final)
   if (existsSync(DIST_DIR)) {
