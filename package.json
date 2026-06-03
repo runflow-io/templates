@@ -6,7 +6,8 @@
   "scripts": {
     "build": "node build.mjs",
     "dev": "node dev.mjs",
-    "test": "node --test"
+    "test": "node --test",
+    "new": "node scripts/new.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.28.0"

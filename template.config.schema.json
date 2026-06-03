@@ -1,0 +1,94 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/runflow-io/templates/template.config.schema.json",
+  "title": "template.config.json",
+  "description": "Per-project config for a Runflow Templates entry under projects/<name>/.",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "type": {
+      "description": "Build type. Usually auto-detected; required for custom and node-functions.",
+      "enum": ["static", "vite", "next", "nuxt", "nuxt-server", "custom", "node-functions"]
+    },
+    "title": {
+      "type": "string",
+      "description": "Human-readable title shown on the landing card."
+    },
+    "noindex": {
+      "type": "boolean",
+      "description": "Opt this template out of indexing (adds a robots meta + drops it from sitemap.xml)."
+    },
+    "outputDir": {
+      "type": "string",
+      "description": "For custom: directory (relative to the project) the build writes to. Default: dist."
+    },
+    "section": {
+      "type": "string",
+      "description": "Group this project's demos under a named section on the landing page."
+    },
+    "demos": {
+      "type": "array",
+      "description": "Sub-entries rendered as individual cards under `section`.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "path": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "dashboard": {
+      "type": "object",
+      "description": "node-functions: the static dashboard built alongside the functions.",
+      "properties": {
+        "dir": { "type": "string", "description": "Project-relative dir to build from. Default: '.'" },
+        "buildCmd": { "type": "string", "description": "Command to build the dashboard. Default: 'npm run build'." },
+        "outputDir": { "type": "string", "description": "Built output dir copied to dist/<name>/." }
+      },
+      "additionalProperties": false
+    },
+    "functions": {
+      "type": "object",
+      "description": "node-functions: serverless functions bundled with esbuild.",
+      "properties": {
+        "entries": {
+          "type": "array",
+          "description": "Handler files (.mjs/.js), project-relative.",
+          "items": { "type": "string" }
+        },
+        "memory": { "type": "integer", "minimum": 128 },
+        "maxDuration": { "type": "integer", "minimum": 1 },
+        "perEntry": {
+          "type": "object",
+          "description": "Per-entry overrides keyed by the entry path.",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "memory": { "type": "integer", "minimum": 128 },
+              "maxDuration": { "type": "integer", "minimum": 1 },
+              "catchAll": { "type": "boolean" }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "crons": {
+      "type": "array",
+      "description": "node-functions: cron schedules. `path` is project-relative; the hub prepends /<name>.",
+      "items": {
+        "type": "object",
+        "required": ["path", "schedule"],
+        "properties": {
+          "path": { "type": "string" },
+          "schedule": { "type": "string", "description": "Standard cron expression." }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}
