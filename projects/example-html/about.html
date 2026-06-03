@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About — Example HTML</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #09090B;
+      color: #FAFAFA;
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    nav {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid #27272A;
+      padding-bottom: 1rem;
+    }
+    nav a {
+      color: #818CF8;
+      text-decoration: none;
+      font-family: 'Space Mono', ui-monospace, monospace;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    nav a:hover { color: #A5B4FC; }
+    h1 {
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      margin-bottom: 0.75rem;
+    }
+    p { color: #A1A1AA; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="./">Home</a>
+    <a href="./about">About</a>
+  </nav>
+  <h1>About</h1>
+  <p>A second route in the same static HTML prototype.</p>
+</body>
+</html>
