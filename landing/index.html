@@ -1,0 +1,1164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Runflow Templates · Specialist AI workflows you can ship in a day</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ───────────────────────────────────────────────────────────────────────
+       runflow.io light-mode tokens (mirrored 1:1 from runflow-website/app/globals.css :root.light)
+       ─────────────────────────────────────────────────────────────────────── */
+    :root {
+      /* backgrounds */
+      --color-background: #F4EFE5;          /* cream page bg */
+      --color-background-deep: #F4EFE5;
+      --color-surface: #FFFFFF;             /* white card */
+      --color-surface-hover: #ECE6D7;       /* soft beige */
+      --color-surface-chip: #ECE6D7;
+      --color-surface-raised: #ECE6D7;
+      --color-surface-2: #ECE6D7;
+
+      /* text */
+      --color-foreground: #18181B;          /* ink */
+      --color-strong: #18181B;
+      --color-muted: #52525B;
+      --color-faint: #71717A;
+      --color-faint-2: #A1A1AA;
+
+      /* borders , warm tan ramp */
+      --color-border: #D9D0BC;
+      --color-border-hover: #B5A887;
+
+      /* amber , light-mode deep orange (AA on cream) */
+      --color-amber: #C2620A;
+      --color-amber-hover: #B45309;
+      --color-amber-pressed: #B45309;
+      --color-amber-glow: rgba(217, 119, 6, 0.08);
+      --color-on-amber: #FFFFFF;
+
+      /* dark-mode amber retained for "dark islands" (cards that opt into a dark surface) */
+      --color-amber-bright: #FBBF24;
+      --color-amber-bright-hover: #FCD34D;
+
+      /* fonts */
+      --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-mono: 'Space Mono', ui-monospace, monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { background: var(--color-background); }
+    body {
+      background: var(--color-background);
+      color: var(--color-foreground);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      line-height: 1.5;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+
+    /* tracking-tightest (utility from runflow.io) */
+    .tracking-tightest { letter-spacing: -0.04em; }
+
+    /* ── badge / eyebrow (mirrors .badge in runflow.io globals.css) ────── */
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 5px 14px;
+      border-radius: 999px;
+      background: rgba(217, 119, 6, 0.10);
+      border: 1px solid rgba(217, 119, 6, 0.32);
+      color: #B45309;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-family: var(--font-sans);
+    }
+
+    /* ── buttons (mirror .btn-primary / .btn-secondary) ────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 10px 24px;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 600;
+      transition: all .2s ease;
+      cursor: pointer;
+      font-family: var(--font-sans);
+    }
+    .btn-primary {
+      background: var(--color-amber);
+      color: #FFFFFF;
+      border: 1px solid var(--color-amber);
+    }
+    .btn-primary:hover { background: var(--color-amber-hover); border-color: var(--color-amber-hover); color: #FFFFFF; }
+    .btn-secondary {
+      background: var(--color-surface);
+      color: var(--color-foreground);
+      border: 1px solid var(--color-border);
+      font-weight: 500;
+    }
+    .btn-secondary:hover { background: var(--color-surface-hover); border-color: var(--color-border-hover); }
+
+    /* ── nav (glass-nav mirror) ────────────────────────────────────────── */
+    header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+      transition: padding .3s ease, background .3s ease, border-color .3s ease;
+      padding: 20px 0;
+    }
+    header.scrolled {
+      padding: 12px 0;
+      background: rgba(244, 239, 229, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--color-border);
+    }
+    .nav-inner {
+      max-width: 1100px; margin: 0 auto;
+      padding: 0 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .brand { display: flex; align-items: center; gap: 14px; cursor: pointer; }
+    .bar-mark {
+      width: 40px; height: 12px;
+      border-radius: 6px;
+      background: linear-gradient(90deg, var(--color-background) 0%, var(--color-amber) 100%);
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.04);
+    }
+    .wordmark {
+      font-family: var(--font-sans);
+      font-size: 22px; font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .wordmark .accent { color: var(--color-amber); }
+    .wordmark .label-suffix {
+      font-weight: 500; font-size: 14px;
+      color: var(--color-muted); margin-left: 10px;
+      padding-left: 12px; border-left: 1px solid var(--color-border);
+    }
+
+    .nav-links { display: flex; align-items: center; gap: 32px; }
+    .nav-links a {
+      font-size: 14px; font-weight: 500;
+      color: var(--color-faint);
+      transition: color .15s ease;
+    }
+    .nav-links a:hover { color: var(--color-strong); }
+    .nav-links .btn { padding: 9px 18px; font-size: 14px; }
+    /* override the .nav-links a color (specificity 0,1,1) for the primary CTA */
+    .nav-links a.btn-primary,
+    .nav-links a.btn-primary:hover { color: #FFFFFF; }
+
+    /* ── hero ──────────────────────────────────────────────────────────── */
+    .hero {
+      padding: 140px 24px 60px;
+      position: relative;
+    }
+    .hero-inner {
+      max-width: 1240px; margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+      gap: 56px;
+      align-items: center;
+    }
+    .hero-left { text-align: left; }
+    .hero .eyebrow-row { display: flex; justify-content: flex-start; margin-bottom: 24px; }
+
+    .hero .headline {
+      font-size: 56px;
+      line-height: 1.05;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      color: var(--color-strong);
+      margin-bottom: 20px;
+    }
+    .hero .headline .block { display: block; }
+    .hero .headline .accent { color: var(--color-amber); }
+
+    .hero .sub {
+      font-size: 17px;
+      line-height: 1.6;
+      color: var(--color-muted);
+      max-width: 540px;
+      margin: 0 0 28px;
+    }
+
+    .cta-row {
+      display: inline-flex; gap: 12px;
+    }
+
+    /* hero-right visual block (prompt + comparison grid + show-more link) */
+    .hero-right { position: relative; }
+
+    /* ChatGPT-style prompt row, logo (left) + pill input bar */
+    .prompt-wrap {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 16px;
+    }
+    .prompt-logo {
+      flex-shrink: 0;
+      width: 44px; height: 44px; border-radius: 999px;
+      background: #FFFFFF; border: 1px solid #E5E5E5;
+      display: flex; align-items: center; justify-content: center;
+      color: #18181B;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .prompt-logo svg { width: 24px; height: 24px; }
+
+    .prompt-input {
+      flex: 1; min-width: 0;
+      display: flex; align-items: center; gap: 10px;
+      background: #FFFFFF; border: 1px solid #E5E5E5;
+      border-radius: 999px;
+      padding: 6px 6px 6px 14px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .prompt-icon-btn {
+      background: transparent; border: 0; padding: 6px;
+      color: #18181B;
+      cursor: pointer; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .prompt-icon-btn svg { width: 20px; height: 20px; }
+    .prompt-text {
+      flex: 1; min-width: 0;
+      font-family: var(--font-sans);
+      font-size: 14px; color: #18181B;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    /* cursor lives as an ::after pseudo-element so the typing JS can just
+       update textContent, and the blinking caret always trails the last char */
+    .prompt-text::after {
+      content: '';
+      display: inline-block;
+      width: 1.5px; height: 14px;
+      background: #18181B;
+      margin-left: 2px;
+      vertical-align: middle;
+      animation: blink 1s steps(2, start) infinite;
+    }
+    /* when the prompt text is empty, give the placeholder hint a muted color */
+    .prompt-text.empty { color: #A1A1AA; }
+    .prompt-send {
+      width: 32px; height: 32px; border-radius: 999px;
+      background: #B4B4B4; border: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: #FFFFFF; cursor: pointer; flex-shrink: 0;
+    }
+    .prompt-send svg { width: 16px; height: 16px; }
+    @keyframes blink { to { opacity: 0; } }
+
+    .visual-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .vg-card {
+      position: relative;
+      background: var(--color-surface);
+      border: 1.5px solid var(--color-border);
+      border-radius: 14px;
+      overflow: hidden;
+      transition: border-color .2s ease;
+    }
+    .vg-card.good { border-color: #16A34A; box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.10); }
+    .vg-card.bad  { border-color: #DC2626; box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.10); }
+    /* aspect-ratio 4/3 = height is 75% of width → tiles are 25% shorter than 1:1 */
+    .vg-card .vg-img-wrap { position: relative; aspect-ratio: 4 / 3; }
+    .vg-card.input .vg-img-wrap { aspect-ratio: 4 / 3; }
+    /* result images fade in once the prompt finishes typing; the typing loop
+       toggles .visible on each .vg-card. img stays mounted so toggling is cheap. */
+    .vg-card .vg-img-wrap img {
+      opacity: 0;
+      transition: opacity 2.4s ease-out;
+    }
+    .vg-card.visible .vg-img-wrap img { opacity: 1; }
+    /* gentle pulsing tint while a result is "generating" (image not yet visible) */
+    .vg-card:not(.visible) .vg-img-wrap {
+      background: linear-gradient(135deg, #FAFAFA 0%, #F4F4F5 100%);
+      animation: gen-pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes gen-pulse {
+      0%, 100% { background: linear-gradient(135deg, #FAFAFA 0%, #F4F4F5 100%); }
+      50%      { background: linear-gradient(135deg, #F4F4F5 0%, #ECE6D7 100%); }
+    }
+    /*
+     * "Loading…" indicator inside each result tile. Visible while the card has
+     * no .visible class; cross-fades out over the same 2.4s as the image fade-in.
+     * The trailing dots animate via ::after content() so the text feels alive.
+     */
+    .vg-loading {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.12em;
+      color: var(--color-faint);
+      pointer-events: none;
+      opacity: 1;
+      transition: opacity 2.4s ease-out;
+      z-index: 1;
+    }
+    .vg-card.visible .vg-loading { opacity: 0; }
+    .vg-loading::after {
+      content: '';
+      display: inline-block;
+      width: 18px;
+      text-align: left;
+      animation: vg-loading-dots 1.4s steps(4, end) infinite;
+    }
+    @keyframes vg-loading-dots {
+      0%   { content: ''; }
+      25%  { content: '.'; }
+      50%  { content: '..'; }
+      75%  { content: '...'; }
+      100% { content: ''; }
+    }
+    .vg-card .vg-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* the source/input card spans the full vertical of the results column */
+    .vg-input {
+      grid-row: span 2;
+      background: var(--color-surface);
+      border: 1.5px solid var(--color-border);
+      border-radius: 14px;
+      overflow: hidden;
+      position: relative;
+    }
+    .vg-input .vg-img-wrap { position: relative; height: 100%; }
+    .vg-input img { width: 100%; height: 100%; object-fit: cover; }
+    /* Bounding-box overlay removed: source.png already includes the arrow
+       drawn over the chair by hand. */
+
+    .vg-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--color-border);
+      background: var(--color-surface);
+    }
+    .vg-header .vg-name { font-size: 14px; font-weight: 700; color: var(--color-strong); }
+    .vg-header .vg-tag {
+      font-family: var(--font-mono);
+      font-size: 9px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      padding: 3px 8px; border-radius: 4px;
+    }
+    .vg-tag.specialist { background: rgba(22, 163, 74, 0.10); color: #15803D; }
+    .vg-tag.generalist { background: rgba(220, 38, 38, 0.10); color: #B91C1C; }
+    .vg-corner {
+      position: absolute; top: 10px; right: 10px;
+      width: 24px; height: 24px; border-radius: 999px;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 2;
+    }
+    .vg-corner.good { background: #16A34A; color: #fff; }
+    .vg-corner.bad  { background: #DC2626; color: #fff; }
+
+    /* compact toggle inside the generalist card header */
+    .vg-toggle {
+      display: inline-flex;
+      background: var(--color-surface-chip);
+      border: 1px solid var(--color-border);
+      border-radius: 999px;
+      padding: 2px;
+      gap: 0;
+    }
+    .vg-toggle button {
+      font-family: var(--font-sans);
+      font-size: 11px; font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 0; background: transparent;
+      color: var(--color-muted);
+      cursor: pointer;
+      transition: background .15s ease, color .15s ease;
+    }
+    .vg-toggle button.active {
+      background: var(--color-surface);
+      color: var(--color-strong);
+      box-shadow: 0 1px 2px rgba(24,24,27,0.06);
+    }
+
+    .show-more-row {
+      display: flex; justify-content: flex-end;
+      margin-top: 14px;
+    }
+    .show-more {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--font-sans);
+      font-size: 13px; font-weight: 600;
+      color: var(--color-amber);
+      cursor: pointer;
+    }
+    .show-more:hover { color: var(--color-amber-hover); }
+
+    /* trust strip stays full-width below the 2-col hero */
+    .trust-row { padding: 40px 24px 0; }
+    .trust {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      max-width: 880px; margin: 0 auto;
+    }
+    .trust-card {
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .trust-card .icon {
+      flex-shrink: 0;
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: rgba(217, 119, 6, 0.10);
+      color: var(--color-amber-pressed);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .trust-card .icon svg { width: 16px; height: 16px; }
+    .trust-card .text { flex: 1; min-width: 0; }
+    .trust-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: left;
+    }
+    .trust-card .k {
+      font-size: 17px; font-weight: 700; letter-spacing: -0.02em;
+      line-height: 1.2; margin-bottom: 4px;
+      color: var(--color-strong);
+      white-space: nowrap;
+    }
+    .trust-card .v {
+      font-family: var(--font-mono);
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--color-faint);
+    }
+
+    /* ── specialist vs generalist ──────────────────────────────────────── */
+    .specialist { padding: 96px 24px; max-width: 1100px; margin: 0 auto; }
+    .specialist .head { text-align: center; margin-bottom: 56px; }
+    .specialist .head .badge { margin-bottom: 16px; }
+    .specialist .head h2 {
+      font-size: 40px; font-weight: 700; letter-spacing: -0.04em; line-height: 1.1;
+      color: var(--color-strong); margin-bottom: 16px;
+    }
+    .specialist .head h2 .accent { color: var(--color-amber); }
+    .specialist .head .sub {
+      font-size: 17px; line-height: 1.6;
+      color: var(--color-muted); max-width: 640px; margin: 0 auto;
+    }
+
+    .compare {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+      max-width: 920px; margin: 0 auto;
+    }
+    .col {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 16px; padding: 32px;
+    }
+    .col.good {
+      border: 1px solid rgba(217, 119, 6, 0.35);
+      background: linear-gradient(180deg, #FBF7EF 0%, #FFFFFF 60%);
+    }
+    .col h3 {
+      font-family: var(--font-mono);
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      margin-bottom: 22px;
+    }
+    .col.bad h3 { color: var(--color-faint); }
+    .col.good h3 { color: var(--color-amber-pressed); }
+    .col ul { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+    .col li {
+      font-size: 15px; color: var(--color-muted);
+      line-height: 1.55;
+      padding-left: 28px; position: relative;
+    }
+    .col.bad li::before {
+      content: '×';
+      position: absolute; left: 0; top: 0;
+      width: 18px; height: 18px; border-radius: 999px;
+      background: var(--color-surface-chip); color: var(--color-faint);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700;
+    }
+    .col.good li::before {
+      content: '✓';
+      position: absolute; left: 0; top: 0;
+      width: 18px; height: 18px; border-radius: 999px;
+      background: var(--color-amber); color: var(--color-on-amber);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+    }
+
+    /* ── templates grid ────────────────────────────────────────────────── */
+    .templates { padding: 32px 24px 96px; max-width: 1100px; margin: 0 auto; }
+    .templates .head { text-align: center; margin-bottom: 48px; }
+    .templates .head .badge { margin-bottom: 16px; }
+    .templates .head h2 {
+      font-size: 40px; font-weight: 700; letter-spacing: -0.04em; line-height: 1.1;
+      color: var(--color-strong); margin-bottom: 16px;
+    }
+    .templates .head h2 .accent { color: var(--color-amber); }
+    .templates .head .sub {
+      color: var(--color-muted); font-size: 17px; line-height: 1.6;
+      max-width: 560px; margin: 0 auto;
+    }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 16px; overflow: hidden;
+      transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+      display: flex; flex-direction: column;
+    }
+    .card.live:hover {
+      transform: translateY(-2px);
+      border-color: rgba(217, 119, 6, 0.4);
+      box-shadow: 0 12px 24px rgba(24,24,27,0.06);
+    }
+    .card.soon { opacity: 0.7; }
+
+    .card-preview {
+      aspect-ratio: 16 / 9;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+    }
+    .card.live .card-preview {
+      background:
+        radial-gradient(ellipse at 30% 70%, rgba(251,191,36,0.22) 0%, transparent 55%),
+        linear-gradient(135deg, #18181B 0%, #09090B 100%);
+      padding: 18px;
+    }
+    .card.soon .card-preview {
+      background: repeating-linear-gradient(45deg, var(--color-surface-chip) 0 10px, var(--color-surface) 10px 20px);
+    }
+
+    /* DTC preview flow: input on the left → amber arrow → 2×3 grid of platform-formatted outputs. Mirrors tools/og-image/yt-shorts-v3.html so the imagery matches the YouTube Short. */
+    .preview-flow {
+      display: flex; align-items: center; gap: 12px;
+      width: 100%; height: 100%;
+    }
+    .pf-input {
+      flex: 0 0 26%;
+      align-self: stretch;
+      border-radius: 6px; overflow: hidden;
+      position: relative;
+      background: #27272A;
+    }
+    .pf-input img { width: 100%; height: 100%; object-fit: cover; }
+    .pf-input .pf-input-tag {
+      position: absolute; top: 6px; left: 6px;
+      font-family: var(--font-mono); font-size: 8px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      padding: 3px 6px; border-radius: 3px;
+      background: rgba(24,24,27,0.85); color: #FFFFFF;
+    }
+    .pf-arrow {
+      flex: 0 0 auto;
+      color: var(--color-amber-bright);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .pf-arrow svg { width: 22px; height: 22px; }
+    .pf-outputs {
+      flex: 1; align-self: stretch;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 6px;
+    }
+
+    /* Each platform tile fills with the result image (object-fit: cover).
+       Header (logo + name) overlays on a top-to-transparent dark gradient so
+       the text stays readable on any underlying image. */
+    .pf-cell {
+      position: relative;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #18181B;
+    }
+    .pf-cell > img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    /* Amazon's main-image asset has a white background, so contain-fit prevents
+       any awkward crop and we keep the cell background white. */
+    .pf-cell.amazon { background: #FFFFFF; }
+    .pf-cell.amazon > img { object-fit: contain; }
+
+    .pf-cell .pf-cell-header {
+      position: absolute; top: 0; left: 0; right: 0;
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 8px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.65) 0%, transparent 100%);
+      z-index: 2;
+    }
+    .pf-cell .pf-cell-logo {
+      width: 14px; height: 14px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .pf-cell .pf-cell-logo img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      filter: brightness(0) invert(1);
+    }
+    .pf-cell .pf-cell-name {
+      font-family: var(--font-sans);
+      font-size: 9px; font-weight: 700;
+      color: #FFFFFF;
+      letter-spacing: -0.01em;
+    }
+
+    .card-body { padding: 24px; }
+    .card-status {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      margin-bottom: 12px;
+    }
+    .card.live .card-status { color: #15803D; }
+    .card.soon .card-status { color: var(--color-faint); }
+    .card h3 {
+      font-size: 22px; font-weight: 700; letter-spacing: -0.02em;
+      color: var(--color-strong); margin-bottom: 10px;
+    }
+    .card p {
+      font-size: 14px; line-height: 1.6;
+      color: var(--color-muted); margin-bottom: 18px;
+    }
+    .card-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip {
+      font-family: var(--font-mono);
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 5px 9px; border-radius: 6px;
+      background: var(--color-surface-chip);
+      color: var(--color-muted);
+      border: 1px solid var(--color-border);
+    }
+    .card-arrow {
+      margin-top: 18px;
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 14px; font-weight: 600;
+      color: var(--color-amber-pressed);
+    }
+    .card-arrow svg { transition: transform .15s ease; }
+    .card.live:hover .card-arrow svg { transform: translateX(3px); }
+
+    /* ── api-cta strip (compact, just above the footer) ────────────────── */
+    .api-cta {
+      border-top: 1px solid var(--color-border);
+      padding: 28px 24px;
+    }
+    .api-cta-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 32px;
+    }
+    .api-cta-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--color-muted);
+      letter-spacing: -0.01em;
+      margin: 0;
+    }
+    .api-cta-links {
+      display: flex; gap: 24px;
+      flex-shrink: 0;
+    }
+    .api-cta-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--font-sans);
+      font-size: 13px; font-weight: 600;
+      color: var(--color-amber);
+      white-space: nowrap;
+    }
+    .api-cta-link:hover { color: var(--color-amber-hover); }
+    .api-cta-link svg { width: 13px; height: 13px; }
+    @media (max-width: 760px) {
+      .api-cta-inner { flex-direction: column; align-items: flex-start; gap: 14px; }
+      .api-cta-links { flex-wrap: wrap; gap: 16px; }
+    }
+
+    /* ── footer ────────────────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--color-border);
+      padding: 32px 24px;
+      text-align: center;
+      color: var(--color-faint); font-size: 13px;
+    }
+    footer a { color: var(--color-muted); }
+    footer a:hover { color: var(--color-strong); }
+
+    /* ── responsive ────────────────────────────────────────────────────── */
+    @media (max-width: 960px) {
+      .hero { padding-top: 120px; }
+      .hero-inner { grid-template-columns: 1fr; gap: 40px; }
+      .hero-left { text-align: center; }
+      .hero .eyebrow-row { justify-content: center; }
+      .hero .sub { margin-left: auto; margin-right: auto; }
+      .hero .headline { font-size: 44px; }
+      .hero .sub { font-size: 16px; }
+      .trust { grid-template-columns: repeat(2, 1fr); }
+      .specialist .head h2, .templates .head h2 { font-size: 30px; }
+      .compare { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: 1fr; }
+      .nav-links a:not(.btn) { display: none; }
+      .wordmark .label-suffix { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─────────── nav ─────────── -->
+  <header id="nav">
+    <div class="nav-inner">
+      <a href="https://www.runflow.io" class="brand">
+        <div class="bar-mark"></div>
+        <span class="wordmark">
+          Run<span class="accent">flow</span><span class="label-suffix">Templates</span>
+        </span>
+      </a>
+      <div class="nav-links">
+        <a class="btn btn-primary" href="#templates">Get started</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ─────────── hero ─────────── -->
+  <section class="hero">
+    <div class="hero-inner">
+      <!-- LEFT: copy + CTAs -->
+      <div class="hero-left">
+        <div class="eyebrow-row">
+          <h1 class="badge">Specialist AI workflows · forkable templates</h1>
+        </div>
+
+        <div class="headline tracking-tightest">
+          <span class="block">Specialist models <span class="accent">ship work to production</span>.</span>
+          <span>Generalists like Nano Banana or GPT Image ship demos.</span>
+        </div>
+
+        <p class="sub">
+          Each Runflow template wraps a focused AI pipeline (product cutout, smart-resize, brand pack, headshot) in a forkable, browser-only UI. Bring your Runflow key, pay per call, ship on your own infra.
+        </p>
+
+        <div class="cta-row">
+          <a class="btn btn-primary" href="#templates">Browse templates</a>
+        </div>
+      </div>
+
+      <!-- RIGHT: prompt bubble + 3-tile comparison (input | runflow / generalist) -->
+      <div class="hero-right">
+        <!--
+          Visual fiction: a user is prompting ChatGPT. ChatGPT logo (left) plus
+          a pill input bar with the typed prompt + ChatGPT's own icon set
+          (image attach, mic, send). Mirrors the screenshot the user supplied.
+        -->
+        <div class="prompt-wrap" role="presentation">
+          <div class="prompt-logo" aria-label="ChatGPT">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.141-.08 4.779-2.758a.795.795 0 0 0 .392-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.494 4.493zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.759a.771.771 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.033.062L9.74 19.95a4.5 4.5 0 0 1-6.14-1.646zM2.34 7.896a4.485 4.485 0 0 1 2.366-1.973V11.6a.766.766 0 0 0 .388.676l5.815 3.355-2.02 1.168a.076.076 0 0 1-.071 0l-4.83-2.786A4.504 4.504 0 0 1 2.34 7.872zm16.597 3.855l-5.833-3.387L15.119 7.2a.076.076 0 0 1 .071 0l4.83 2.791a4.494 4.494 0 0 1-.676 8.105v-5.678a.79.79 0 0 0-.407-.667zm2.01-3.023l-.141-.085-4.774-2.782a.776.776 0 0 0-.785 0L9.409 9.23V6.897a.066.066 0 0 1 .028-.061l4.83-2.787a4.5 4.5 0 0 1 6.68 4.66zm-12.64 4.135l-2.02-1.164a.08.08 0 0 1-.038-.057V6.075a4.5 4.5 0 0 1 7.375-3.453l-.142.08L8.704 5.46a.795.795 0 0 0-.393.681zm1.097-2.365l2.602-1.5 2.607 1.5v2.999l-2.597 1.5-2.607-1.5z"/></svg>
+          </div>
+          <div class="prompt-input">
+            <button class="prompt-icon-btn" type="button" aria-label="Attach image">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+            </button>
+            <div class="prompt-text" id="prompt-text">create a product image from the table masked on the picture</div>
+            <button class="prompt-icon-btn" type="button" aria-label="Voice input">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M19 10a7 7 0 0 1-14 0M12 19v3"/></svg>
+            </button>
+            <button class="prompt-send" type="button" aria-label="Send">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="visual-grid">
+          <!--
+            LEFT tile = source/input. Spans both rows on the right column.
+            Replace source.png with your hand-marked version that already
+            includes the highlight box around the chair; then delete the
+            .bbox overlay below.
+          -->
+          <div class="vg-input">
+            <div class="vg-img-wrap">
+              <img src="assets/hero/source.png" alt="parent photo, living room with chair to isolate" />
+            </div>
+          </div>
+
+          <!-- RIGHT top = Runflow result (specialist, green) -->
+          <div class="vg-card good visible" id="runflow-card">
+            <div class="vg-header">
+              <span class="vg-name">Runflow</span>
+              <span class="vg-tag specialist">Specialist ✓</span>
+            </div>
+            <div class="vg-img-wrap">
+              <span class="vg-loading">Loading</span>
+              <img src="assets/hero/runflow.jpg" alt="Runflow specialist result" />
+            </div>
+          </div>
+
+          <!-- RIGHT bottom = generalist with GPT Image 2 / Nano Banana toggle (red) -->
+          <div class="vg-card bad visible" id="generalist-card">
+            <div class="vg-header">
+              <div class="vg-toggle" role="tablist" aria-label="Generalist model">
+                <button id="tab-gpt" class="active" role="tab" aria-selected="true">GPT Image 2</button>
+                <button id="tab-nano" role="tab" aria-selected="false">Nano Banana</button>
+              </div>
+              <span class="vg-tag generalist">Generalist ✗</span>
+            </div>
+            <div class="vg-img-wrap">
+              <span class="vg-loading">Loading</span>
+              <img id="generalist-img" src="assets/hero/gpt.jpg" alt="GPT Image 2 generalist result" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Text link sits outside underneath the grid, right-aligned under the result tiles -->
+        <div class="show-more-row">
+          <a class="show-more" href="#why">
+            See why closed models break in production
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- trust strip, full-width row below the hero -->
+  <section class="trust-row">
+    <div class="trust">
+      <div class="trust-card">
+        <div class="icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <div class="text">
+          <div class="k">1-click</div>
+          <div class="v">Open in Replit</div>
+        </div>
+      </div>
+
+      <div class="trust-card">
+        <div class="icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 1 0 0-8c-2 0-4 1.33-6 4Z"/></svg>
+        </div>
+        <div class="text">
+          <div class="k">Use or resell</div>
+          <div class="v">You have full freedom</div>
+        </div>
+      </div>
+
+      <div class="trust-card">
+        <div class="icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
+        </div>
+        <div class="text">
+          <div class="k">Test for free</div>
+          <div class="v">No card required</div>
+        </div>
+      </div>
+
+      <div class="trust-card">
+        <div class="icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>
+        </div>
+        <div class="text">
+          <div class="k">Pay-as-you-go</div>
+          <div class="v">Not a subscription</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── specialist vs generalist ─────────── -->
+  <section class="specialist" id="why">
+    <div class="head">
+      <span class="badge">Why templates</span>
+      <h2 class="tracking-tightest">
+        Generalist models are great at demos.<br/>
+        <span class="accent">Specialists</span> are what <span class="accent">actually ships</span>.
+      </h2>
+      <p class="sub">
+        One model that promises to do everything will frustrate you the moment you try to use it for one specific job. Runflow templates wrap a chain of specialist models around the exact task you're doing.
+      </p>
+    </div>
+
+    <div class="compare">
+      <div class="col bad">
+        <h3>Generalist prompt-and-pray</h3>
+        <ul>
+          <li>Closed-source models can't accept masks, so you can't point at one object and edit only that object</li>
+          <li>Quality collapses the moment you chain more than one edit on the same image</li>
+          <li>They add artifacts (extra props, distorted edges, hallucinated lighting) you never asked for</li>
+          <li>"Make a lifestyle product photo" returns wrong angle, wrong lighting, wrong category</li>
+          <li>One prompt fits all, so 2 out of 10 attempts are usable and you are the QA loop</li>
+        </ul>
+      </div>
+      <div class="col good">
+        <h3>Runflow specialist template</h3>
+        <ul>
+          <li>Pixel-precise masks: point at one object, edit only that object, leave the rest of the image untouched</li>
+          <li>Every step is a separate specialist call, so chaining ten edits doesn't compound drift</li>
+          <li>Specialist models keep the source pixels intact, no artifacts you didn't ask for</li>
+          <li>gpt-4o reads the product first, picks scene prompts by category, then runflow/product-isolation does the cutout</li>
+          <li>runflow/smart-resize and outpaint produce every ratio, pixel-accurate, on your own infra</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── templates grid ─────────── -->
+  <section class="templates" id="templates">
+    <div class="head">
+      <span class="badge">Live templates</span>
+      <h2 class="tracking-tightest">
+        Pick a workflow. <span class="accent">Fork it. Ship it.</span>
+      </h2>
+      <p class="sub">
+        Every template is a Replit-importable repo with a working UI and a working pipeline. Open it, paste two keys, you are live.
+      </p>
+    </div>
+
+    <div class="grid">
+
+      <a class="card live" href="https://templates.runflow.io/dtc-image-package/" target="_blank" rel="noopener">
+        <div class="card-preview">
+          <div class="preview-flow">
+            <!-- LEFT: input photo -->
+            <div class="pf-input">
+              <img src="assets/hero/sklum-example.webp" alt="supplier photo input" />
+              <span class="pf-input-tag">Input</span>
+            </div>
+
+            <!-- MIDDLE: amber arrow -->
+            <div class="pf-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            </div>
+
+            <!--
+              RIGHT: 2×3 platform-format outputs. Imagery + logos pulled from
+              tools/og-image/yt-shorts-v3 so the DTC card matches the Short.
+              Instagram + YouTube cells use brand-gradient only (matching v3).
+            -->
+            <div class="pf-outputs">
+              <div class="pf-cell amazon">
+                <img src="assets/hero/amazon-cutout.png" alt="amazon main image output" />
+                <div class="pf-cell-header">
+                  <div class="pf-cell-logo"><img src="assets/hero/logos/amazon.svg" alt="" /></div>
+                  <span class="pf-cell-name">Amazon</span>
+                </div>
+              </div>
+              <div class="pf-cell shopify">
+                <img src="assets/hero/shopify-life.jpg" alt="shopify lifestyle output" />
+                <div class="pf-cell-header">
+                  <div class="pf-cell-logo"><img src="assets/hero/logos/shopify.svg" alt="" /></div>
+                  <span class="pf-cell-name">Shopify</span>
+                </div>
+              </div>
+              <div class="pf-cell tiktok">
+                <img src="assets/hero/tiktok-life.jpg" alt="tiktok lifestyle output" />
+                <div class="pf-cell-header">
+                  <div class="pf-cell-logo"><img src="assets/hero/logos/tiktok.svg" alt="" /></div>
+                  <span class="pf-cell-name">TikTok</span>
+                </div>
+              </div>
+              <div class="pf-cell pinterest">
+                <img src="assets/hero/pinterest-life.jpg" alt="pinterest lifestyle output" />
+                <div class="pf-cell-header">
+                  <div class="pf-cell-logo"><img src="assets/hero/logos/pinterest.svg" alt="" /></div>
+                  <span class="pf-cell-name">Pinterest</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-status">● Live</div>
+          <h3>DTC image package</h3>
+          <p>One supplier photo → seven store-ready assets. Cutout, white studio, three lifestyle scenes, 9:16 hero, 1:1 ad. Built for AliExpress, 1688, and Alibaba rebrands.</p>
+          <div class="card-meta">
+            <span class="chip">React + Vite</span>
+            <span class="chip">~$0.25 / pack</span>
+            <span class="chip">Replit-ready</span>
+          </div>
+          <div class="card-arrow">Open template
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+      </a>
+
+      <div class="card soon">
+        <div class="card-preview"></div>
+        <div class="card-body">
+          <div class="card-status">○ Coming soon</div>
+          <h3>Smart ad resize + translator</h3>
+          <p>One ad creative, every platform aspect ratio + every locale. Smart reframe preserves the subject through 1:1, 9:16, 4:5, 16:9; translator swaps the headline copy per market without re-rendering the visual.</p>
+          <div class="card-meta">
+            <span class="chip">Ad reframe</span>
+            <span class="chip">Multi-locale</span>
+            <span class="chip">Coming Jun 2026</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card soon">
+        <div class="card-preview"></div>
+        <div class="card-body">
+          <div class="card-status">○ Coming soon</div>
+          <h3>Multi-angle product studio</h3>
+          <p>One product photo → eight angles for Amazon, Shopify, and Shop ads. Front, three-quarter, top-down, side, lifestyle pairings, all consistent.</p>
+          <div class="card-meta">
+            <span class="chip">E-commerce</span>
+            <span class="chip">Multi-angle</span>
+            <span class="chip">Coming Jul 2026</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card soon">
+        <div class="card-preview"></div>
+        <div class="card-body">
+          <div class="card-status">○ Coming soon</div>
+          <h3>Motion ad builder</h3>
+          <p>Static ad creative → 6-second motion ad with subtle parallax, text reveal, and product-spin. Drop your hero image, get a TikTok-ready MP4.</p>
+          <div class="card-meta">
+            <span class="chip">Video</span>
+            <span class="chip">TikTok 9:16</span>
+            <span class="chip">Coming Aug 2026</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ─────────── api-cta strip (developer fallback, sits above the footer) ─────────── -->
+  <section class="api-cta">
+    <div class="api-cta-inner">
+      <h3 class="api-cta-title">Do you prefer to play around with the solution API endpoint right away?</h3>
+      <div class="api-cta-links">
+        <a class="api-cta-link" href="https://www.runflow.io/api" target="_blank" rel="noopener">
+          See all our solution APIs
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+        <a class="api-cta-link" href="https://docs.runflow.io/agents/skills" target="_blank" rel="noopener">
+          Prompt our docs in your LLM
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── footer ─────────── -->
+  <footer>
+    Runflow Templates · <a href="https://www.runflow.io">runflow.io</a> · <a href="https://github.com/runflow-io/templates" target="_blank" rel="noopener">github</a>
+  </footer>
+
+  <script>
+    // Sticky-nav scrolled state, mirrors the runflow.io 10px trigger.
+    (function () {
+      var nav = document.getElementById('nav');
+      function update() {
+        if (window.scrollY > 10) nav.classList.add('scrolled');
+        else nav.classList.remove('scrolled');
+      }
+      window.addEventListener('scroll', update, { passive: true });
+      update();
+    })();
+
+    // Generalist toggle: GPT Image 2 / Nano Banana
+    (function () {
+      var img = document.getElementById('generalist-img');
+      var tabGpt = document.getElementById('tab-gpt');
+      var tabNano = document.getElementById('tab-nano');
+      function show(which) {
+        if (which === 'nano') {
+          img.src = 'assets/hero/nano.jpg';
+          img.alt = 'Nano Banana Pro generalist result';
+          tabNano.classList.add('active'); tabNano.setAttribute('aria-selected', 'true');
+          tabGpt.classList.remove('active'); tabGpt.setAttribute('aria-selected', 'false');
+        } else {
+          img.src = 'assets/hero/gpt.jpg';
+          img.alt = 'GPT Image 2 generalist result';
+          tabGpt.classList.add('active'); tabGpt.setAttribute('aria-selected', 'true');
+          tabNano.classList.remove('active'); tabNano.setAttribute('aria-selected', 'false');
+        }
+      }
+      tabGpt.addEventListener('click', function () { show('gpt'); });
+      tabNano.addEventListener('click', function () { show('nano'); });
+    })();
+
+    /*
+     * Hero typing loop.
+     *
+     * Cycle (looped forever):
+     *   1. Hide result tiles (opacity 0), clear prompt text.
+     *   2. Type the prompt one char at a time (~50ms/char ≈ 2.3s for the line).
+     *   3. Reveal result tiles → CSS fades opacity 0 → 1 over 2.4s.
+     *   4. Hold for 3s so the user can actually see the result.
+     *   5. Goto 1.
+     *
+     * First paint shows the fully-rendered state (initial .visible class) so the
+     * page never opens blank. The first cycle starts after a short hold.
+     *
+     * Respects prefers-reduced-motion: keeps the initial rendered state and
+     * doesn't animate at all.
+     */
+    (function () {
+      var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduced) return;
+
+      var PROMPT = 'create a product image from the table masked on the picture';
+      var TYPE_SPEED = 50;     // ms per character
+      var POST_TYPE_HOLD = 250; // ms before images start fading in
+      var FADE_MS = 2400;      // matches CSS transition on .vg-img-wrap img
+      var DWELL_MS = 3000;     // hold the finished frame for 3s before restart
+      var INITIAL_HOLD = 2800; // let the first paint sit before the loop kicks in
+
+      var promptEl = document.getElementById('prompt-text');
+      var runflowCard = document.getElementById('runflow-card');
+      var generalistCard = document.getElementById('generalist-card');
+      if (!promptEl || !runflowCard || !generalistCard) return;
+
+      function setTyped(s) { promptEl.textContent = s; }
+      function hideImages() {
+        runflowCard.classList.remove('visible');
+        generalistCard.classList.remove('visible');
+      }
+      function showImages() {
+        runflowCard.classList.add('visible');
+        generalistCard.classList.add('visible');
+      }
+
+      function typeOnce(done) {
+        setTyped('');
+        var i = 0;
+        var t = setInterval(function () {
+          i++;
+          setTyped(PROMPT.slice(0, i));
+          if (i >= PROMPT.length) { clearInterval(t); done(); }
+        }, TYPE_SPEED);
+      }
+
+      function cycle() {
+        hideImages();
+        typeOnce(function () {
+          setTimeout(showImages, POST_TYPE_HOLD);
+          setTimeout(cycle, POST_TYPE_HOLD + FADE_MS + DWELL_MS);
+        });
+      }
+
+      // First paint already shows the fully typed prompt + visible images.
+      // Start the loop after a brief hold so the page lands gracefully.
+      setTimeout(cycle, INITIAL_HOLD);
+    })();
+  </script>
+
+</body>
+</html>
