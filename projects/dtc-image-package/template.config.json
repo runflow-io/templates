@@ -1,0 +1,17 @@
+{
+  "type": "node-functions",
+  "title": "DTC image package — supplier photo to 7-asset brand pack",
+  "dashboard": {
+    "dir": ".",
+    "buildCmd": "npm run build",
+    "outputDir": "dist"
+  },
+  "functions": {
+    "entries": ["api/runflow.mjs", "api/asset-proxy.mjs"],
+    "memory": 1024,
+    "maxDuration": 60,
+    "perEntry": {
+      "api/runflow.mjs": { "catchAll": true }
+    }
+  }
+}
