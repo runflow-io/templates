@@ -198,6 +198,7 @@
     .prompt-wrap {
       display: flex; align-items: center; gap: 12px;
       margin-bottom: 16px;
+      width: 100%; min-width: 0;
     }
     .prompt-logo {
       flex-shrink: 0;
@@ -228,7 +229,7 @@
       flex: 1; min-width: 0;
       font-family: var(--font-sans);
       font-size: 14px; color: #18181B;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      white-space: nowrap; overflow: hidden;
     }
     /* cursor lives as an ::after pseudo-element so the typing JS can just
        update textContent, and the blinking caret always trails the last char */
@@ -1097,9 +1098,10 @@
     /*
      * Hero typing loop.
      *
-     * Desktop cycle: hide tiles → type prompt → reveal tiles (fade 2.4s) → dwell → repeat.
-     * Mobile cycle: just retype the prompt; tiles stay visible (the hide/reveal triggers
-     *   a layout reflow that visibly widens the page on small viewports).
+     * Cycle: hide tiles → type prompt → reveal tiles (fade 2.4s) → dwell → repeat.
+     * The input bar has fixed width (flex: 1 + overflow: hidden); as text outgrows
+     * the bar we pin scrollLeft to scrollWidth so the caret stays glued to the
+     * right edge and earlier chars scroll off the left (instead of pushing layout).
      * Respects prefers-reduced-motion: skips the loop entirely.
      */
     (function () {
@@ -1118,10 +1120,11 @@
       var generalistCard = document.getElementById('generalist-card');
       if (!promptEl || !runflowCard || !generalistCard) return;
 
-      function isMobile() {
-        return window.matchMedia('(max-width: 760px)').matches;
+      function setTyped(s) {
+        promptEl.textContent = s;
+        // Keep the caret pinned to the right edge once content overflows the bar.
+        promptEl.scrollLeft = promptEl.scrollWidth;
       }
-      function setTyped(s) { promptEl.textContent = s; }
       function hideImages() {
         runflowCard.classList.remove('visible');
         generalistCard.classList.remove('visible');
@@ -1142,20 +1145,16 @@
       }
 
       function cycle() {
-        var mobile = isMobile();
-        if (!mobile) hideImages();
+        hideImages();
         typeOnce(function () {
-          if (mobile) {
-            setTimeout(cycle, DWELL_MS);
-          } else {
-            setTimeout(showImages, POST_TYPE_HOLD);
-            setTimeout(cycle, POST_TYPE_HOLD + FADE_MS + DWELL_MS);
-          }
+          setTimeout(showImages, POST_TYPE_HOLD);
+          setTimeout(cycle, POST_TYPE_HOLD + FADE_MS + DWELL_MS);
         });
       }
 
       // First paint already shows the fully typed prompt + visible images.
-      // Start the loop after a brief hold so the page lands gracefully.
+      // Pin the caret position too, in case the rendered string is wider than the bar.
+      promptEl.scrollLeft = promptEl.scrollWidth;
       setTimeout(cycle, INITIAL_HOLD);
     })();
   </script>
