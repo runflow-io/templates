@@ -192,7 +192,7 @@
     }
 
     /* hero-right visual block (prompt + comparison grid + show-more link) */
-    .hero-right { position: relative; }
+    .hero-right { position: relative; min-width: 0; }
 
     /* ChatGPT-style prompt row, logo (left) + pill input bar */
     .prompt-wrap {
@@ -255,7 +255,10 @@
 
     .visual-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      /* minmax(0, 1fr) instead of 1fr — grid items default to min-width: auto
+         (= content min-content). The source/result images would otherwise size
+         the tracks to their intrinsic width and push the grid past the viewport. */
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 10px;
     }
     .vg-card {
@@ -700,7 +703,7 @@
     /* ── responsive ────────────────────────────────────────────────────── */
     @media (max-width: 960px) {
       .hero { padding-top: 120px; }
-      .hero-inner { grid-template-columns: 1fr; gap: 40px; }
+      .hero-inner { grid-template-columns: minmax(0, 1fr); gap: 40px; }
       .hero-left { text-align: center; }
       .hero .eyebrow-row { justify-content: center; }
       .hero .sub { margin-left: auto; margin-right: auto; }
