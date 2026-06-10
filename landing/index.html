@@ -1097,18 +1097,10 @@
     /*
      * Hero typing loop.
      *
-     * Cycle (looped forever):
-     *   1. Hide result tiles (opacity 0), clear prompt text.
-     *   2. Type the prompt one char at a time (~50ms/char ≈ 2.3s for the line).
-     *   3. Reveal result tiles → CSS fades opacity 0 → 1 over 2.4s.
-     *   4. Hold for 3s so the user can actually see the result.
-     *   5. Goto 1.
-     *
-     * First paint shows the fully-rendered state (initial .visible class) so the
-     * page never opens blank. The first cycle starts after a short hold.
-     *
-     * Respects prefers-reduced-motion: keeps the initial rendered state and
-     * doesn't animate at all.
+     * Desktop cycle: hide tiles → type prompt → reveal tiles (fade 2.4s) → dwell → repeat.
+     * Mobile cycle: just retype the prompt; tiles stay visible (the hide/reveal triggers
+     *   a layout reflow that visibly widens the page on small viewports).
+     * Respects prefers-reduced-motion: skips the loop entirely.
      */
     (function () {
       var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1126,6 +1118,9 @@
       var generalistCard = document.getElementById('generalist-card');
       if (!promptEl || !runflowCard || !generalistCard) return;
 
+      function isMobile() {
+        return window.matchMedia('(max-width: 760px)').matches;
+      }
       function setTyped(s) { promptEl.textContent = s; }
       function hideImages() {
         runflowCard.classList.remove('visible');
@@ -1147,10 +1142,15 @@
       }
 
       function cycle() {
-        hideImages();
+        var mobile = isMobile();
+        if (!mobile) hideImages();
         typeOnce(function () {
-          setTimeout(showImages, POST_TYPE_HOLD);
-          setTimeout(cycle, POST_TYPE_HOLD + FADE_MS + DWELL_MS);
+          if (mobile) {
+            setTimeout(cycle, DWELL_MS);
+          } else {
+            setTimeout(showImages, POST_TYPE_HOLD);
+            setTimeout(cycle, POST_TYPE_HOLD + FADE_MS + DWELL_MS);
+          }
         });
       }
 
