@@ -1,0 +1,24 @@
+{
+  "type": "node-functions",
+  "title": "Contest judge dashboard — Brand-consistent ad variants",
+  "dashboard": {
+    "dir": ".",
+    "buildCmd": "npm run build",
+    "outputDir": "dist"
+  },
+  "functions": {
+    "entries": [
+      "api/run.mjs",
+      "api/upload-create.mjs",
+      "api/upload-confirm.mjs",
+      "api/submit-to-slack.mjs",
+      "api/evaluate.mjs"
+    ],
+    "memory": 1024,
+    "maxDuration": 60,
+    "perEntry": {
+      "api/run.mjs": { "catchAll": true },
+      "api/upload-confirm.mjs": { "catchAll": true }
+    }
+  }
+}
