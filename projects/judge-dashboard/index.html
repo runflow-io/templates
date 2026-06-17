@@ -157,6 +157,16 @@
   }
   .form-section h4.section-h .meta { color: var(--faint); font-weight: 400; font-size: 10px; margin-left: 6px; }
 
+  /* Step heading: 24px Outfit, same weight as section-title */
+  .step-label {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 24px;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin: 0 0 14px 0;
+  }
+
   .field { margin-bottom: 14px; }
   .field-label {
     display: block;
@@ -1415,10 +1425,14 @@
     <div class="card form-stack">
       <!-- Section 1: Heroes (full width) -->
       <div class="form-section">
-        <div style="display: flex; justify-content: space-between; align-items: baseline;">
-          <h4 class="section-h" style="margin: 0;">Hero images <span class="meta">up to 3</span></h4>
-          <button class="btn btn-ghost btn-sm" id="loadSetBtn" type="button">↻ Load a saved set</button>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
+          <h3 class="step-label">Step 1: Upload hero images</h3>
+          <div style="display: flex; gap: 6px;">
+            <button class="btn btn-ghost btn-sm" id="loadSetBtn" type="button">↻ Load a saved set</button>
+            <button class="btn btn-ghost btn-sm" id="saveInputs" type="button">＋ Save inputs as set</button>
+          </div>
         </div>
+        <h4 class="section-h" style="margin: 0 0 12px 0;">Hero images <span class="meta">up to 3</span></h4>
         <div class="hero-grid">
             <div class="hero-dropzone" id="hero1-zone"
                  onclick="document.getElementById('hero1-file').click()"
@@ -1466,13 +1480,12 @@
               <div class="hero-filled" id="hero3-preview"></div>
             </div>
         </div>
-        <div class="field-hint">Uploads go to Runflow's asset storage — workflows receive a <code>runflow://assets/{id}</code> URI.</div>
       </div>
 
       <!-- Section 2: Brand kit (left) + Audience cuts (right) -->
       <div class="form-row">
         <div>
-          <h4 class="section-h">Brand kit</h4>
+          <h3 class="step-label">Step 2: Set your brand kit</h3>
           <div class="hero-dropzone logo-dropzone" id="brandLogo-zone"
                onclick="document.getElementById('brandLogo-file').click()"
                ondragover="event.preventDefault(); this.classList.add('dragging');"
@@ -1522,6 +1535,7 @@
         </div>
 
         <div>
+          <h3 class="step-label">Step 3: Set your copy or leave it as is</h3>
           <h4 class="section-h">Audience cuts <span class="meta">label + headline + subhead + CTA</span></h4>
           <div id="cutsList"></div>
           <button class="btn btn-ghost btn-sm" id="addCutBtn" style="margin-top: 8px;">+ Add another cut</button>
@@ -1530,6 +1544,7 @@
 
       <!-- Section 3: Output formats (full width) -->
       <div class="form-section">
+        <h3 class="step-label">Step 4: Choose your formats</h3>
         <h4 class="section-h">Output formats <span class="meta">click to toggle, up to 4 — positional: format1…format4</span></h4>
         <div class="chip-row" id="formatChips">
           <span class="chip active" data-fmt="1:1">1:1</span>
@@ -1540,16 +1555,15 @@
       </div>
     </div>
 
-    <div style="margin-top: 14px; display: flex; gap: 8px;" id="inputsActions">
-      <button class="btn btn-primary" id="saveInputs">Save inputs as set</button>
-      <span id="saveStatus" style="margin-left:8px; align-self:center; color: var(--muted); font-size:12px;"></span>
+    <div style="margin-top: 8px; display: flex; gap: 8px; justify-content: flex-end;" id="inputsActions">
+      <span id="saveStatus" style="align-self:center; color: var(--muted); font-size:12px;"></span>
     </div>
   </section>
 
   <!-- BOTTOM: results gallery -->
   <section>
     <div class="eyebrow">Results</div>
-    <h2 class="section-title">Generated variants</h2>
+    <h2 class="section-title">Step 5: Generate variants</h2>
     <p class="section-sub">Click <em>Generate</em> to run the test set through the workflow. Each (hero × cut × format) combination produces one image. Click any tile to open fullscreen, then use ← / → to navigate and rate with like / dislike.</p>
 
     <div id="batchPills" class="batch-pills"></div>
@@ -1577,9 +1591,7 @@
       <div class="totals-line" id="scoreSummary">No ratings yet.</div>
       <div style="display:flex; gap:8px; align-items: center;">
         <span id="submitStatus" class="mono" style="font-size: 11px; color: var(--muted);"></span>
-        <button class="btn btn-ghost" id="exportBtn">Export JSON</button>
-        <button class="btn btn-ghost" id="resetBtn">Reset</button>
-        <button class="btn btn-primary" id="submitSlackBtn">Send ratings to Slack →</button>
+        <button class="btn btn-primary" id="submitSlackBtn" disabled>Send your ratings (0 / 0)</button>
       </div>
     </div>
   </section>
@@ -1634,7 +1646,7 @@ let JUDGE_NAME = localStorage.getItem("runflow_judge_name_v1") || "";
 let JUDGE_COMPANY = localStorage.getItem("runflow_judge_company_v1") || "";
 let IS_ADMIN = localStorage.getItem("runflow_is_admin_v1") === "true";
 
-const ADMIN_PASSWORD = "Runflow.io/team";
+const ADMIN_PASSWORDS = ["Runflow.io/team", "ContestJudges2026"];
 
 function saveU() { localStorage.setItem("runflow_uploads_c01_v2", JSON.stringify(UPLOADS)); }
 function saveBatches() { localStorage.setItem("runflow_batches_v1", JSON.stringify(BATCHES)); }
@@ -2481,16 +2493,26 @@ function renderTile(r, idx) {
 
 function renderScoreSummary() {
   const el = document.getElementById("scoreSummary");
-  if (!el) return;
+  const btn = document.getElementById("submitSlackBtn");
   const scored = RESULTS.filter(r => r.status === "succeeded" && r.image);
-  if (!scored.length) {
-    el.innerHTML = `No ratings yet.`;
-    return;
-  }
   const likes = scored.filter(r => LIKES[r.id] === "like").length;
   const dislikes = scored.filter(r => LIKES[r.id] === "dislike").length;
-  const pending = scored.length - likes - dislikes;
-  el.innerHTML = `<strong style="color: var(--success);">${likes} liked</strong>  ·  <strong style="color: var(--error);">${dislikes} disliked</strong>  ·  <span style="color: var(--muted);">${pending} unrated</span>  ·  total ${scored.length}`;
+  const rated = likes + dislikes;
+  const pending = scored.length - rated;
+  if (el) {
+    if (!scored.length) {
+      el.innerHTML = `No ratings yet.`;
+    } else {
+      el.innerHTML = `<strong style="color: var(--success);">${likes} liked</strong>  ·  <strong style="color: var(--error);">${dislikes} disliked</strong>  ·  <span style="color: var(--muted);">${pending} unrated</span>  ·  total ${scored.length}`;
+    }
+  }
+  if (btn) {
+    btn.textContent = `Send your ratings (${rated} / ${scored.length})`;
+    btn.disabled = !scored.length || pending > 0;
+    btn.title = btn.disabled
+      ? (scored.length ? `Rate the remaining ${pending} image${pending === 1 ? "" : "s"} to submit` : "No generated variants to rate yet")
+      : "";
+  }
 }
 
 function rate(id, value) {
@@ -2527,7 +2549,7 @@ function setJudgeIdentity(name, company) {
   JUDGE_NAME = (name || "").trim();
   JUDGE_COMPANY = (company || "").trim();
   const wasAdmin = IS_ADMIN;
-  IS_ADMIN = JUDGE_COMPANY === ADMIN_PASSWORD;
+  IS_ADMIN = ADMIN_PASSWORDS.includes(JUDGE_COMPANY);
   saveJudgeName(); saveJudgeCompany(); saveAdmin();
   renderJudgeTag();
   // Re-render everything if admin status changed (visibility of inputs etc.)
@@ -2640,9 +2662,8 @@ async function submitToSlack() {
     const j = await r.json().catch(() => ({}));
     if (r.status >= 300) throw new Error(j.message || `HTTP ${r.status}`);
     status.textContent = `✓ sent to ${j.channel || "Slack"}`;
-    btn.disabled = false;
     btn.innerHTML = "Sent ✓";
-    setTimeout(() => { btn.innerHTML = "Send ratings to Slack →"; status.textContent = ""; }, 4000);
+    setTimeout(() => { status.textContent = ""; renderScoreSummary(); }, 4000);
   } catch (e) {
     status.textContent = `✗ ${e.message}`;
     btn.disabled = false;
@@ -2887,26 +2908,6 @@ function attachFormEvents() {
     writeForm(SAMPLE);
     setInputs(SAMPLE);
     document.getElementById("setPickerModal").classList.remove("open");
-  });
-  document.getElementById("exportBtn").addEventListener("click", () => {
-    const blob = new Blob([JSON.stringify({
-      inputs: readForm(),
-      generated_at: new Date().toISOString(),
-      results: RESULTS.map(r => ({ id: r.id, hero_idx: r.hero_idx, cut_idx: r.cut_idx, format: r.format, status: r.status, image: r.image, cost: r.cost, duration_ms: r.duration_ms, rating: LIKES[r.id] || null })),
-      summary: { likes: Object.values(LIKES).filter(v => v === "like").length, dislikes: Object.values(LIKES).filter(v => v === "dislike").length, total_rated: Object.keys(LIKES).length },
-    }, null, 2)], { type: "application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `ratings-${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
-  });
-  document.getElementById("resetBtn").addEventListener("click", () => {
-    if (!confirm("Wipe local ratings and generated results?")) return;
-    RESULTS = []; LIKES = {}; GEN_STATE = { status: "idle", total: 0, done: 0, error: null };
-    localStorage.removeItem("runflow_results_v1");
-    localStorage.removeItem("runflow_likes_v1");
-    localStorage.removeItem("runflow_gen_state_v1");
-    renderAll();
   });
 }
 
