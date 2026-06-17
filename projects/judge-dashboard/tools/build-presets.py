@@ -129,7 +129,7 @@ PRESETS = [
             {"label": "Holiday gift",         "headline": "Make hers unforgettable", "subhead": "From the icon to the everyday", "cta": "Shop the collection"},
             {"label": "Fragrance loyalist",   "headline": "Your signature, refined", "subhead": "Three icons, one collection",   "cta": "Discover"},
         ],
-        "formats": ["1:1", "9:16", "4:5"],
+        "formats": ["1:1", "9:16", "4:5", "16:9"],
     },
     {
         "id": "runflow",
