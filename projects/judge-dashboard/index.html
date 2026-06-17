@@ -1402,14 +1402,28 @@
 </div>
 
 <!-- Feedback modal (shown on dislike) -->
+<!-- Submit confirmation modal -->
+<div class="modal-overlay" id="confirmSubmitModal">
+  <div class="modal">
+    <h3>Ready to submit?</h3>
+    <p id="confirmSubmitBody" style="color: var(--text-2);">You've rated every image in this pack.</p>
+    <div id="confirmSubmitStats" style="display: flex; gap: 18px; padding: 14px 0; font-family: 'Outfit', sans-serif;"></div>
+    <p style="font-size: 13px; color: var(--muted); margin: 4px 0 14px;">We'll save each vote to Notion (image + feedback) and post a short notification in Slack.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="confirmSubmitCancel">Keep editing</button>
+      <button class="btn btn-primary" id="confirmSubmitGo">Submit your ratings</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="feedbackModal">
   <div class="modal">
-    <h3>What's off?</h3>
-    <p>Tell us why you wouldn't run this ad. Anything specific — wrong brand colors, bad text, awkward composition, doesn't match the hero?</p>
+    <h3 id="feedbackTitle">What's off?</h3>
+    <p id="feedbackBody">Tell us why you wouldn't run this ad. Anything specific — wrong brand colors, bad text, awkward composition, doesn't match the hero?</p>
     <textarea id="feedbackText" placeholder="A line or two is enough…"></textarea>
     <div class="modal-actions">
       <button class="btn btn-ghost" id="feedbackSkip">Skip</button>
-      <button class="btn btn-primary" id="feedbackSubmit">Save dislike</button>
+      <button class="btn btn-primary" id="feedbackSubmit">Save</button>
     </div>
   </div>
 </div>
@@ -2530,8 +2544,8 @@ function rate(id, value) {
   renderResults();
   renderScoreSummary();
   if (LIGHTBOX_IDX != null) updateLightboxRateButtons();
-  // On dislike, prompt for free-text feedback
-  if (value === "dislike") openFeedbackModal(id);
+  // Prompt for free-text feedback on both like and dislike (skippable)
+  openFeedbackModal(id, value);
 }
 
 /* ---- Modals ---- */
@@ -2603,10 +2617,22 @@ function deleteInputSet(id) {
 }
 
 let FEEDBACK_TARGET = null;
-function openFeedbackModal(resultId) {
+function openFeedbackModal(resultId, rating) {
   FEEDBACK_TARGET = resultId;
   const overlay = document.getElementById("feedbackModal");
   const ta = document.getElementById("feedbackText");
+  const title = document.getElementById("feedbackTitle");
+  const body = document.getElementById("feedbackBody");
+  const value = rating || LIKES[resultId];
+  if (value === "like") {
+    title.textContent = "What's great about it?";
+    body.textContent = "What stood out — brand fit, composition, copy, the way it pairs with the hero? Anything you'd reuse on your own brand.";
+    ta.placeholder = "A line or two is enough — or skip.";
+  } else {
+    title.textContent = "What's off?";
+    body.textContent = "Tell us why you wouldn't run this ad. Anything specific — wrong brand colors, bad text, awkward composition, doesn't match the hero?";
+    ta.placeholder = "A line or two is enough…";
+  }
   ta.value = FEEDBACK[resultId] || "";
   overlay.classList.add("open");
   setTimeout(() => ta.focus(), 50);
@@ -2614,6 +2640,15 @@ function openFeedbackModal(resultId) {
 function closeFeedbackModal() {
   document.getElementById("feedbackModal").classList.remove("open");
   FEEDBACK_TARGET = null;
+}
+function advanceLightboxIfOpen() {
+  if (LIGHTBOX_IDX == null) return;
+  const visible = visibleResultIndices();
+  if (visible.length <= 1) return;
+  const pos = visible.indexOf(LIGHTBOX_IDX);
+  // Stop on the last image instead of wrapping to the start.
+  if (pos < 0 || pos >= visible.length - 1) return;
+  lightboxNav(1);
 }
 function saveCurrentFeedback() {
   if (!FEEDBACK_TARGET) return;
@@ -2624,10 +2659,40 @@ function saveCurrentFeedback() {
   closeFeedbackModal();
   renderResults();
   renderScoreSummary();
+  advanceLightboxIfOpen();
+  maybeOpenConfirmSubmitModal();
+}
+function skipCurrentFeedback() {
+  closeFeedbackModal();
+  advanceLightboxIfOpen();
+  maybeOpenConfirmSubmitModal();
 }
 
-/* ---- Submit to Slack ---- */
-async function submitToSlack() {
+/* Open the confirm-submit modal the first time the user reaches a fully-rated
+   state. If they unrate and re-rate, we let it open again. */
+function maybeOpenConfirmSubmitModal() {
+  const scored = RESULTS.filter(r => r.status === "succeeded" && r.image);
+  if (!scored.length) return;
+  const rated = scored.filter(r => LIKES[r.id]).length;
+  if (rated < scored.length) return;
+  const likes = scored.filter(r => LIKES[r.id] === "like").length;
+  const dislikes = scored.length - likes;
+  const stats = document.getElementById("confirmSubmitStats");
+  if (stats) {
+    stats.innerHTML = `
+      <div><div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em;">Liked</div><div style="font-size: 28px; font-weight: 700; color: var(--success);">${likes}</div></div>
+      <div><div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em;">Disliked</div><div style="font-size: 28px; font-weight: 700; color: var(--error);">${dislikes}</div></div>
+      <div><div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em;">Total</div><div style="font-size: 28px; font-weight: 700; color: var(--ink);">${scored.length}</div></div>
+    `;
+  }
+  document.getElementById("confirmSubmitModal").classList.add("open");
+}
+function closeConfirmSubmitModal() {
+  document.getElementById("confirmSubmitModal").classList.remove("open");
+}
+
+/* ---- Submit ratings (Notion + Slack) ---- */
+async function submitRatings() {
   if (!JUDGE_NAME) { openNameModal(); return; }
   const scored = RESULTS.filter(r => r.status === "succeeded" && r.image);
   const rated = scored.filter(r => LIKES[r.id]);
@@ -2637,33 +2702,32 @@ async function submitToSlack() {
   }
   const btn = document.getElementById("submitSlackBtn");
   const status = document.getElementById("submitStatus");
+  closeConfirmSubmitModal();
   btn.disabled = true;
-  status.textContent = "sending…";
+  status.textContent = `saving ${rated.length} vote${rated.length === 1 ? "" : "s"} to Notion…`;
 
   const payload = {
     judge_name: JUDGE_NAME,
     submitted_at: new Date().toISOString(),
     inputs: readForm(),
-    results: scored.map(r => ({
+    results: rated.map(r => ({
       id: r.id, hero_idx: r.hero_idx, cut_idx: r.cut_idx, format: r.format,
       image: r.image, cost: r.cost, duration_ms: r.duration_ms,
       rating: LIKES[r.id] || null,
       feedback: FEEDBACK[r.id] || null,
     })),
-    summary: {
-      total_generated: scored.length,
-      liked: rated.filter(r => LIKES[r.id] === "like").length,
-      disliked: rated.filter(r => LIKES[r.id] === "dislike").length,
-      total_cost: RESULTS.filter(r => r.cost != null).reduce((a, r) => a + r.cost, 0),
-    },
   };
   try {
-    const r = await fetch("api/submit-to-slack", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    const r = await fetch("api/submit-ratings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     const j = await r.json().catch(() => ({}));
     if (r.status >= 300) throw new Error(j.message || `HTTP ${r.status}`);
-    status.textContent = `✓ sent to ${j.channel || "Slack"}`;
+    const created = j.notion?.created ?? 0;
+    const failed = j.notion?.errors?.length || 0;
+    status.textContent = failed
+      ? `✓ saved ${created}, ${failed} failed — see Vercel logs`
+      : `✓ ${created} vote${created === 1 ? "" : "s"} saved to Notion + Slack notified`;
     btn.innerHTML = "Sent ✓";
-    setTimeout(() => { status.textContent = ""; renderScoreSummary(); }, 4000);
+    setTimeout(() => { status.textContent = ""; renderScoreSummary(); }, 5000);
   } catch (e) {
     status.textContent = `✗ ${e.message}`;
     btn.disabled = false;
@@ -3032,12 +3096,14 @@ function attachModalEvents() {
   });
   // Feedback modal
   document.getElementById("feedbackSubmit").addEventListener("click", saveCurrentFeedback);
-  document.getElementById("feedbackSkip").addEventListener("click", closeFeedbackModal);
+  document.getElementById("feedbackSkip").addEventListener("click", skipCurrentFeedback);
   document.getElementById("feedbackText").addEventListener("keydown", (e) => {
     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) saveCurrentFeedback();
   });
   // Submit to Slack
-  document.getElementById("submitSlackBtn").addEventListener("click", submitToSlack);
+  document.getElementById("submitSlackBtn").addEventListener("click", maybeOpenConfirmSubmitModal);
+  document.getElementById("confirmSubmitGo").addEventListener("click", submitRatings);
+  document.getElementById("confirmSubmitCancel").addEventListener("click", closeConfirmSubmitModal);
 }
 boot();
 </script>
