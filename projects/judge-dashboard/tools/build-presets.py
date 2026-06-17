@@ -87,7 +87,11 @@ def poll(run_id, max_wait=900, interval=5):
             return {"status_code": "timeout", "failure_message": "client poll timeout", "output": r.get("output")}
         time.sleep(interval)
 
-def build_payload(hero_url, aspect, cut, brand, logo_url, aux1_url, aux2_url):
+def build_payload(hero_url, aspect, cut, brand, logo_url, _unused_aux1=None, _unused_aux2=None):
+    """Per the runflow-ad-creative skill: each (hero × angle × format) is its
+    own clean run with the SAME hero in all three reference slots. Passing
+    different heroes to Aux Reference 1/2 causes the model to composite them
+    (e.g. three perfume bottles in one Chanel ad)."""
     lines = [
         "Produce a brand-locked ad variant from the provided primary design reference.",
         f'Headline text: "{cut["headline"]}".' if cut.get("headline") else "",
@@ -106,8 +110,8 @@ def build_payload(hero_url, aspect, cut, brand, logo_url, aux1_url, aux2_url):
         "aspect_ratio": aspect or "1:1",
         "logo": logo_url or "",
         "primary_design_ref": hero_url,
-        "Aux Reference 1": aux1_url or logo_url or hero_url,
-        "Aux Reference 2": aux2_url or logo_url or hero_url,
+        "Aux Reference 1": hero_url,
+        "Aux Reference 2": hero_url,
     }
 
 def download(url, dest):
@@ -125,7 +129,7 @@ PRESETS = [
             {"label": "Holiday gift",         "headline": "Make hers unforgettable", "subhead": "From the icon to the everyday", "cta": "Shop the collection"},
             {"label": "Fragrance loyalist",   "headline": "Your signature, refined", "subhead": "Three icons, one collection",   "cta": "Discover"},
         ],
-        "formats": ["1:1", "9:16"],
+        "formats": ["1:1", "9:16", "4:5"],
     },
     {
         "id": "runflow",
@@ -136,7 +140,7 @@ PRESETS = [
             {"label": "Performance marketer", "headline": "Variants overnight, on-brand", "subhead": "Cut creative-refresh costs by 4x", "cta": "Get started"},
             {"label": "Indie founder",        "headline": "Ship the ad today",            "subhead": "From one hero to a full set",      "cta": "Try Runflow"},
         ],
-        "formats": ["16:9", "4:5"],
+        "formats": ["16:9", "4:5", "1:1"],
     },
     {
         "id": "ikea",
@@ -147,7 +151,7 @@ PRESETS = [
             {"label": "Performance marketer", "headline": "Variants overnight, on-brand", "subhead": "Cut creative-refresh costs by 4x", "cta": "Get started"},
             {"label": "Indie founder",        "headline": "Ship the ad today",            "subhead": "From one hero to a full set",      "cta": "Try Runflow"},
         ],
-        "formats": ["9:16", "16:9"],
+        "formats": ["9:16", "16:9", "4:5"],
     },
 ]
 
