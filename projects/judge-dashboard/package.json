@@ -5,5 +5,8 @@
   "description": "Contest judge dashboard for Runflow Builder Contest",
   "scripts": {
     "build": "mkdir -p dist && cp index.html submissions.json dist/ && cp -R presets dist/presets"
+  },
+  "dependencies": {
+    "@vercel/blob": "^0.27.0"
   }
 }
