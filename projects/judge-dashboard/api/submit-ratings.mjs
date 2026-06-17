@@ -50,16 +50,21 @@ export default async function handler(req, res) {
       const r = rated[idx];
       try {
         const tile = `H${r.hero_idx ?? "?"}·C${r.cut_idx ?? "?"}·${r.format ?? "?"}`;
-        let fileUploadId = null;
-        if (r.image) {
-          fileUploadId = await uploadImageToNotion(notionKey, r.image, `${tile}.png`);
-        }
+        // Upload both the rated output AND the input hero in parallel so Goke
+        // can correlate ratings back to what the workflow actually saw.
+        const [fileUploadId, heroFileUploadId] = await Promise.all([
+          r.image ? uploadImageToNotion(notionKey, r.image, `${tile}-output.png`) : null,
+          r.hero_url ? uploadImageToNotion(notionKey, r.hero_url, `${tile}-hero.png`).catch(e => { console.warn(`hero upload failed for ${tile}:`, e?.message); return null; }) : null,
+        ]);
         const page = await createNotionPage(notionKey, databaseId, {
           voter: judge,
           company,
           vote: r.rating,
           feedback: (r.feedback || "").trim(),
           fileUploadId,
+          heroFileUploadId,
+          heroSourceUrl: r.hero_url || "",
+          prompt: (r.prompt || "").trim(),
           sourceUrl: r.image || "",
           tile,
           briefLabel,
@@ -154,11 +159,18 @@ async function createNotionPage(token, databaseId, row) {
   if (row.tile) properties["Tile"] = { rich_text: [{ text: { content: row.tile } }] };
   if (row.briefLabel) properties["Brief label"] = { rich_text: [{ text: { content: row.briefLabel } }] };
   if (row.sourceUrl) properties["Source URL"] = { url: row.sourceUrl };
+  if (row.heroSourceUrl) properties["Hero source URL"] = { url: row.heroSourceUrl };
+  if (row.prompt) properties["Prompt"] = { rich_text: [{ text: { content: row.prompt.slice(0, 1900) } }] };
   if (row.costUsd != null) properties["Cost USD"] = { number: row.costUsd };
   if (row.runtimeSeconds != null) properties["Runtime s"] = { number: row.runtimeSeconds };
   if (row.fileUploadId) {
     properties["Image"] = {
       files: [{ name: row.tile || "image", type: "file_upload", file_upload: { id: row.fileUploadId } }],
+    };
+  }
+  if (row.heroFileUploadId) {
+    properties["Hero image"] = {
+      files: [{ name: `${row.tile || "hero"}-hero`, type: "file_upload", file_upload: { id: row.heroFileUploadId } }],
     };
   }
   const res = await fetch(`${NOTION_API_BASE}/pages`, {
