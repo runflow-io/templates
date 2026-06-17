@@ -122,8 +122,8 @@ PRESETS = [
         "logo": "logo.png",
         "brand": {"brandColor1": "#09090B", "brandColor2": "", "brandFont": "Couture", "brandTone": "premium"},
         "cuts": [
-            {"label": "Performance marketer", "headline": "Variants overnight, on-brand", "subhead": "Cut creative-refresh costs by 4x", "cta": "Get started"},
-            {"label": "Indie founder",        "headline": "Ship the ad today",            "subhead": "From one hero to a full set",      "cta": "Try Runflow"},
+            {"label": "Holiday gift",         "headline": "Make hers unforgettable", "subhead": "From the icon to the everyday", "cta": "Shop the collection"},
+            {"label": "Fragrance loyalist",   "headline": "Your signature, refined", "subhead": "Three icons, one collection",   "cta": "Discover"},
         ],
         "formats": ["1:1", "9:16"],
     },
