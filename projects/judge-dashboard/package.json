@@ -4,6 +4,6 @@
   "version": "0.0.1",
   "description": "Contest judge dashboard for Runflow Builder Contest",
   "scripts": {
-    "build": "mkdir -p dist && cp index.html submissions.json dist/"
+    "build": "mkdir -p dist && cp index.html submissions.json dist/ && cp -R presets dist/presets"
   }
 }
