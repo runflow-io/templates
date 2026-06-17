@@ -1404,12 +1404,12 @@
 <!-- Feedback modal (shown on dislike) -->
 <div class="modal-overlay" id="feedbackModal">
   <div class="modal">
-    <h3>What's off?</h3>
-    <p>Tell us why you wouldn't run this ad. Anything specific — wrong brand colors, bad text, awkward composition, doesn't match the hero?</p>
+    <h3 id="feedbackTitle">What's off?</h3>
+    <p id="feedbackBody">Tell us why you wouldn't run this ad. Anything specific — wrong brand colors, bad text, awkward composition, doesn't match the hero?</p>
     <textarea id="feedbackText" placeholder="A line or two is enough…"></textarea>
     <div class="modal-actions">
       <button class="btn btn-ghost" id="feedbackSkip">Skip</button>
-      <button class="btn btn-primary" id="feedbackSubmit">Save dislike</button>
+      <button class="btn btn-primary" id="feedbackSubmit">Save</button>
     </div>
   </div>
 </div>
@@ -2530,8 +2530,8 @@ function rate(id, value) {
   renderResults();
   renderScoreSummary();
   if (LIGHTBOX_IDX != null) updateLightboxRateButtons();
-  // On dislike, prompt for free-text feedback
-  if (value === "dislike") openFeedbackModal(id);
+  // Prompt for free-text feedback on both like and dislike (skippable)
+  openFeedbackModal(id, value);
 }
 
 /* ---- Modals ---- */
@@ -2603,10 +2603,22 @@ function deleteInputSet(id) {
 }
 
 let FEEDBACK_TARGET = null;
-function openFeedbackModal(resultId) {
+function openFeedbackModal(resultId, rating) {
   FEEDBACK_TARGET = resultId;
   const overlay = document.getElementById("feedbackModal");
   const ta = document.getElementById("feedbackText");
+  const title = document.getElementById("feedbackTitle");
+  const body = document.getElementById("feedbackBody");
+  const value = rating || LIKES[resultId];
+  if (value === "like") {
+    title.textContent = "What's great about it?";
+    body.textContent = "What stood out — brand fit, composition, copy, the way it pairs with the hero? Anything you'd reuse on your own brand.";
+    ta.placeholder = "A line or two is enough — or skip.";
+  } else {
+    title.textContent = "What's off?";
+    body.textContent = "Tell us why you wouldn't run this ad. Anything specific — wrong brand colors, bad text, awkward composition, doesn't match the hero?";
+    ta.placeholder = "A line or two is enough…";
+  }
   ta.value = FEEDBACK[resultId] || "";
   overlay.classList.add("open");
   setTimeout(() => ta.focus(), 50);
@@ -2614,6 +2626,15 @@ function openFeedbackModal(resultId) {
 function closeFeedbackModal() {
   document.getElementById("feedbackModal").classList.remove("open");
   FEEDBACK_TARGET = null;
+}
+function advanceLightboxIfOpen() {
+  if (LIGHTBOX_IDX == null) return;
+  const visible = visibleResultIndices();
+  if (visible.length <= 1) return;
+  const pos = visible.indexOf(LIGHTBOX_IDX);
+  // Stop on the last image instead of wrapping to the start.
+  if (pos < 0 || pos >= visible.length - 1) return;
+  lightboxNav(1);
 }
 function saveCurrentFeedback() {
   if (!FEEDBACK_TARGET) return;
@@ -2624,6 +2645,11 @@ function saveCurrentFeedback() {
   closeFeedbackModal();
   renderResults();
   renderScoreSummary();
+  advanceLightboxIfOpen();
+}
+function skipCurrentFeedback() {
+  closeFeedbackModal();
+  advanceLightboxIfOpen();
 }
 
 /* ---- Submit to Slack ---- */
@@ -3032,7 +3058,7 @@ function attachModalEvents() {
   });
   // Feedback modal
   document.getElementById("feedbackSubmit").addEventListener("click", saveCurrentFeedback);
-  document.getElementById("feedbackSkip").addEventListener("click", closeFeedbackModal);
+  document.getElementById("feedbackSkip").addEventListener("click", skipCurrentFeedback);
   document.getElementById("feedbackText").addEventListener("keydown", (e) => {
     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) saveCurrentFeedback();
   });
