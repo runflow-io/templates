@@ -1795,6 +1795,11 @@ let JUDGE_COMPANY = localStorage.getItem("runflow_judge_company_v1") || "";
 // Everyone has access to the input form, generation, and rating regardless.
 let IS_ADMIN = localStorage.getItem("runflow_is_admin_v1") === "true";
 
+// Tile IDs that an admin has hidden across every judge's browser. Lives in
+// Vercel Blob via /api/preset-overrides — fetched at boot, refreshed after
+// every admin hide action.
+let HIDDEN_TILES = new Set();
+
 // Any of these unlocks the dashboard. Only "Runflow.io/team" unlocks
 // admin features (cost visibility, tile delete/recover, raw output).
 const VALID_PASSWORDS = ["Runflow.io/team", "RunflowJudges2026"];
@@ -1974,7 +1979,7 @@ function applyPreset(presetId) {
       duration_ms: r.duration_ms ?? null,
       prompt: r.prompt || null,
       hero_url: r.hero_url || p.uploads?.[`hero${r.hero_idx}`]?.preview_url || null,
-    }));
+    })).filter(r => !HIDDEN_TILES.has(r.id));
     const payload = {
       id: batchId,
       name: `${p.name} · pre-rendered`,
@@ -2935,10 +2940,35 @@ async function submitRatings() {
   }
 }
 
-function deleteResult(id) {
+async function deleteResult(id) {
   if (!IS_ADMIN) return;
-  if (!confirm("Delete this output? (Judges won't see it any more.)")) return;
   const b = currentBatch(); if (!b) return;
+  const isPreset = b.preset_id && id.startsWith(`preset-${b.preset_id}-`);
+  const msg = isPreset
+    ? "Hide this output for every judge?\n\nThis writes to the shared override store and propagates on the next page load for everyone."
+    : "Delete this output? (Local batch — only affects your browser.)";
+  if (!confirm(msg)) return;
+  if (isPreset) {
+    const password = prompt("Admin password (re-enter to confirm):", "");
+    if (!password) return;
+    try {
+      const r = await fetch("api/preset-overrides", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${password}` },
+        body: JSON.stringify({ tile_id: id, action: "hide" }),
+      });
+      if (!r.ok) {
+        const j = await r.json().catch(() => ({}));
+        alert(`Hide failed: ${j.message || r.status}`);
+        return;
+      }
+      const j = await r.json();
+      HIDDEN_TILES = new Set(j.hidden || []);
+    } catch (e) {
+      alert(`Hide failed: ${e.message}`);
+      return;
+    }
+  }
   b.results = b.results.filter(r => r.id !== id);
   if (b.likes && b.likes[id]) delete b.likes[id];
   if (b.feedback && b.feedback[id]) delete b.feedback[id];
@@ -3255,6 +3285,15 @@ async function boot() {
   attachFormEvents();
   ["hero1","hero2","hero3","brandLogo"].forEach(renderUploadPreview);
   renderJudgeTag();
+  // Fetch the shared hidden-tile list before seeding the preset batch so the
+  // judge never briefly sees a tile that's been hidden by an admin elsewhere.
+  try {
+    const r = await fetch("api/preset-overrides", { cache: "no-store" });
+    if (r.ok) {
+      const j = await r.json();
+      HIDDEN_TILES = new Set(Array.isArray(j.hidden) ? j.hidden : []);
+    }
+  } catch (_) { /* offline / endpoint missing — degrade gracefully */ }
   // Seed preset state: in preset mode, drop the active preset's batch into
   // BATCHES so the Results section is populated on first load.
   if (STEP1_MODE === "preset" && ACTIVE_PRESET_ID) {

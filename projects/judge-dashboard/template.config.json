@@ -12,6 +12,7 @@
       "api/upload-create.mjs",
       "api/upload-confirm.mjs",
       "api/submit-ratings.mjs",
+      "api/preset-overrides.mjs",
       "api/evaluate.mjs"
     ],
     "memory": 1024,
