@@ -1659,7 +1659,8 @@ let CURRENT_BATCH_ID = localStorage.getItem("runflow_current_batch_v1") || "";
 let INPUT_SETS = JSON.parse(localStorage.getItem("runflow_input_sets_v1") || "[]");
 let JUDGE_NAME = localStorage.getItem("runflow_judge_name_v1") || "";
 let JUDGE_COMPANY = localStorage.getItem("runflow_judge_company_v1") || "";
-let IS_ADMIN = localStorage.getItem("runflow_is_admin_v1") === "true";
+// Judges run the flow with their own assets — everyone has admin-level access.
+let IS_ADMIN = true;
 
 const ADMIN_PASSWORDS = ["Runflow.io/team", "ContestJudges2026"];
 
@@ -2564,13 +2565,13 @@ function closeNameModal() {
 function setJudgeIdentity(name, company, password) {
   JUDGE_NAME = (name || "").trim();
   JUDGE_COMPANY = (company || "").trim();
-  const wasAdmin = IS_ADMIN;
-  // Password is never persisted; only the resulting IS_ADMIN flag is.
-  IS_ADMIN = ADMIN_PASSWORDS.includes((password || "").trim());
+  // Judges run the flow with their own assets, so everyone has full access
+  // to the input form, generation, and rating. Password input is kept for
+  // future use but no longer gates features.
+  IS_ADMIN = true;
   saveJudgeName(); saveJudgeCompany(); saveAdmin();
   renderJudgeTag();
-  // Re-render everything if admin status changed (visibility of inputs etc.)
-  if (wasAdmin !== IS_ADMIN) applyAdminGating();
+  applyAdminGating();
 }
 function renderJudgeTag() {
   const el = document.getElementById("judgeNameTag");
