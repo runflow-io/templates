@@ -1590,8 +1590,8 @@
         <span id="genStatusPill"></span>
         <span id="genProgress" class="mono" style="font-size: 12px; color: var(--muted); margin-left: 8px;"></span>
       </div>
-      <div class="stat admin-cost">
-        <span class="label">Total cost <span style="font-size: 9px; color: var(--faint);">(internal)</span></span>
+      <div class="stat">
+        <span class="label">Total cost</span>
         <span class="value placeholder" id="genTotalCost">—</span>
       </div>
       <div class="stat">
@@ -1669,7 +1669,7 @@ const PRESETS = [
         { label: "Holiday gift", headline: "Make hers unforgettable", subhead: "From the icon to the everyday", cta: "Shop the collection" },
         { label: "Fragrance loyalist", headline: "Your signature, refined", subhead: "Three icons, one collection", cta: "Discover" }
       ],
-      formats: ["1:1", "9:16"]
+      formats: ["1:1", "9:16", "4:5"]
     },
     uploads: {
       hero1: { preview_url: `${PRESET_ASSET_BASE}/chanel/hero1.jpg`, runflow_uri: `${PRESET_ASSET_BASE}/chanel/hero1.jpg`, filename: "hero1.jpg" },
@@ -1680,16 +1680,22 @@ const PRESETS = [
     runs: [
       {"hero_idx": 1, "cut_idx": 1, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h1-c1-1x1.jpg", "cost": null, "duration_ms": null},
       {"hero_idx": 1, "cut_idx": 1, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h1-c1-9x16.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 1, "cut_idx": 1, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h1-c1-4x5.jpg", "cost": null, "duration_ms": null},
       {"hero_idx": 1, "cut_idx": 2, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h1-c2-1x1.jpg", "cost": null, "duration_ms": null},
       {"hero_idx": 1, "cut_idx": 2, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h1-c2-9x16.jpg", "cost": null, "duration_ms": null},
-      {"hero_idx": 2, "cut_idx": 1, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h2-c1-1x1.jpg", "cost": 0.027811, "duration_ms": 39172},
+      {"hero_idx": 1, "cut_idx": 2, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h1-c2-4x5.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 2, "cut_idx": 1, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h2-c1-1x1.jpg", "cost": null, "duration_ms": null},
       {"hero_idx": 2, "cut_idx": 1, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h2-c1-9x16.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 2, "cut_idx": 1, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h2-c1-4x5.jpg", "cost": null, "duration_ms": null},
       {"hero_idx": 2, "cut_idx": 2, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h2-c2-1x1.jpg", "cost": null, "duration_ms": null},
       {"hero_idx": 2, "cut_idx": 2, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h2-c2-9x16.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 2, "cut_idx": 2, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h2-c2-4x5.jpg", "cost": null, "duration_ms": null},
       {"hero_idx": 3, "cut_idx": 1, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h3-c1-1x1.jpg", "cost": null, "duration_ms": null},
       {"hero_idx": 3, "cut_idx": 1, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h3-c1-9x16.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 3, "cut_idx": 1, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h3-c1-4x5.jpg", "cost": 0.028979, "duration_ms": 40824},
       {"hero_idx": 3, "cut_idx": 2, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h3-c2-1x1.jpg", "cost": null, "duration_ms": null},
-      {"hero_idx": 3, "cut_idx": 2, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h3-c2-9x16.jpg", "cost": null, "duration_ms": null}
+      {"hero_idx": 3, "cut_idx": 2, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h3-c2-9x16.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 3, "cut_idx": 2, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h3-c2-4x5.jpg", "cost": 0.026492, "duration_ms": 37290}
     ]
   },
   {
@@ -1704,7 +1710,7 @@ const PRESETS = [
         { label: "Performance marketer", headline: "Variants overnight, on-brand", subhead: "Cut creative-refresh costs by 4x", cta: "Get started" },
         { label: "Indie founder", headline: "Ship the ad today", subhead: "From one hero to a full set", cta: "Try Runflow" }
       ],
-      formats: ["16:9", "4:5"]
+      formats: ["16:9", "4:5", "1:1"]
     },
     uploads: {
       hero1: { preview_url: `${PRESET_ASSET_BASE}/runflow/hero1.jpg`, runflow_uri: `${PRESET_ASSET_BASE}/runflow/hero1.jpg`, filename: "hero1.jpg" },
@@ -1715,16 +1721,22 @@ const PRESETS = [
     runs: [
       {"hero_idx": 1, "cut_idx": 1, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h1-c1-16x9.jpg", "cost": null, "duration_ms": null},
       {"hero_idx": 1, "cut_idx": 1, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h1-c1-4x5.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 1, "cut_idx": 1, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h1-c1-1x1.jpg", "cost": null, "duration_ms": null},
       {"hero_idx": 1, "cut_idx": 2, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h1-c2-16x9.jpg", "cost": null, "duration_ms": null},
       {"hero_idx": 1, "cut_idx": 2, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h1-c2-4x5.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 1, "cut_idx": 2, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h1-c2-1x1.jpg", "cost": null, "duration_ms": null},
       {"hero_idx": 2, "cut_idx": 1, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h2-c1-16x9.jpg", "cost": null, "duration_ms": null},
       {"hero_idx": 2, "cut_idx": 1, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h2-c1-4x5.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 2, "cut_idx": 1, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h2-c1-1x1.jpg", "cost": null, "duration_ms": null},
       {"hero_idx": 2, "cut_idx": 2, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h2-c2-16x9.jpg", "cost": null, "duration_ms": null},
       {"hero_idx": 2, "cut_idx": 2, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h2-c2-4x5.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 2, "cut_idx": 2, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h2-c2-1x1.jpg", "cost": 0.025475, "duration_ms": 35885},
       {"hero_idx": 3, "cut_idx": 1, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h3-c1-16x9.jpg", "cost": null, "duration_ms": null},
       {"hero_idx": 3, "cut_idx": 1, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h3-c1-4x5.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 3, "cut_idx": 1, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h3-c1-1x1.jpg", "cost": 0.026282, "duration_ms": 37070},
       {"hero_idx": 3, "cut_idx": 2, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h3-c2-16x9.jpg", "cost": null, "duration_ms": null},
-      {"hero_idx": 3, "cut_idx": 2, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h3-c2-4x5.jpg", "cost": null, "duration_ms": null}
+      {"hero_idx": 3, "cut_idx": 2, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h3-c2-4x5.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 3, "cut_idx": 2, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h3-c2-1x1.jpg", "cost": null, "duration_ms": null}
     ]
   },
   {
@@ -1739,7 +1751,7 @@ const PRESETS = [
         { label: "Performance marketer", headline: "Variants overnight, on-brand", subhead: "Cut creative-refresh costs by 4x", cta: "Get started" },
         { label: "Indie founder", headline: "Ship the ad today", subhead: "From one hero to a full set", cta: "Try Runflow" }
       ],
-      formats: ["9:16", "16:9"]
+      formats: ["9:16", "16:9", "4:5"]
     },
     uploads: {
       hero1: { preview_url: `${PRESET_ASSET_BASE}/ikea/hero1.jpg`, runflow_uri: `${PRESET_ASSET_BASE}/ikea/hero1.jpg`, filename: "hero1.jpg" },
@@ -1750,16 +1762,22 @@ const PRESETS = [
     runs: [
       {"hero_idx": 1, "cut_idx": 1, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h1-c1-9x16.jpg", "cost": null, "duration_ms": null},
       {"hero_idx": 1, "cut_idx": 1, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h1-c1-16x9.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 1, "cut_idx": 1, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h1-c1-4x5.jpg", "cost": null, "duration_ms": null},
       {"hero_idx": 1, "cut_idx": 2, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h1-c2-9x16.jpg", "cost": null, "duration_ms": null},
       {"hero_idx": 1, "cut_idx": 2, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h1-c2-16x9.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 1, "cut_idx": 2, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h1-c2-4x5.jpg", "cost": null, "duration_ms": null},
       {"hero_idx": 2, "cut_idx": 1, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h2-c1-9x16.jpg", "cost": null, "duration_ms": null},
       {"hero_idx": 2, "cut_idx": 1, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h2-c1-16x9.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 2, "cut_idx": 1, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h2-c1-4x5.jpg", "cost": null, "duration_ms": null},
       {"hero_idx": 2, "cut_idx": 2, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h2-c2-9x16.jpg", "cost": null, "duration_ms": null},
       {"hero_idx": 2, "cut_idx": 2, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h2-c2-16x9.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 2, "cut_idx": 2, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h2-c2-4x5.jpg", "cost": null, "duration_ms": null},
       {"hero_idx": 3, "cut_idx": 1, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h3-c1-9x16.jpg", "cost": null, "duration_ms": null},
       {"hero_idx": 3, "cut_idx": 1, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h3-c1-16x9.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 3, "cut_idx": 1, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h3-c1-4x5.jpg", "cost": null, "duration_ms": null},
       {"hero_idx": 3, "cut_idx": 2, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h3-c2-9x16.jpg", "cost": null, "duration_ms": null},
-      {"hero_idx": 3, "cut_idx": 2, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h3-c2-16x9.jpg", "cost": null, "duration_ms": null}
+      {"hero_idx": 3, "cut_idx": 2, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h3-c2-16x9.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 3, "cut_idx": 2, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h3-c2-4x5.jpg", "cost": null, "duration_ms": null}
     ]
   }
 ];
@@ -2094,15 +2112,18 @@ function buildPayloadForNux(heroUrl, aspect, cut) {
     `Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.`
   ].filter(Boolean);
 
-  const hero2 = urlOrUpload("hero2") || logo || heroUrl;
-  const hero3 = urlOrUpload("hero3") || logo || heroUrl;
+  // The workflow requires three reference fields, but mixing different heroes
+  // in one run causes the model to composite them together (e.g. all three
+  // perfume bottles in a single Chanel ad). Per the runflow-ad-creative skill,
+  // satisfy all three slots with the SAME hero — each (hero × angle × format)
+  // gets its own clean run.
   return {
     "prompt": promptLines.join(" "),
     "aspect_ratio": aspect || "1:1",
     "logo": logo,
     "primary_design_ref": heroUrl,
-    "Aux Reference 1": hero2,
-    "Aux Reference 2": hero3
+    "Aux Reference 1": heroUrl,
+    "Aux Reference 2": heroUrl
   };
 }
 
@@ -3080,7 +3101,7 @@ function updateLightbox() {
   const pos = visible.indexOf(LIGHTBOX_IDX) + 1;
   document.getElementById("lightboxCaption").innerHTML =
     `<strong>${pos}/${visible.length}</strong> · Hero ${r.hero_idx} · Angle ${r.cut_idx} · ${r.format}` +
-    (IS_ADMIN ? ` · $${(r.cost||0).toFixed(3)}` : "") +
+    ` · $${(r.cost||0).toFixed(3)}` +
     ` · ${((r.duration_ms||0)/1000).toFixed(1)}s`;
   updateLightboxRateButtons();
 }
