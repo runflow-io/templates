@@ -152,20 +152,18 @@ PRESETS = [
 ]
 
 def main():
-    out_presets = []
+    # Phase 1: submit every (hero × cut × format) in parallel — Runflow handles
+    # the queue, we just collect run_ids and poll them as a batch afterwards.
+    jobs = []  # list of dicts: pid, hi, ci, fmt, run_id
     for p in PRESETS:
         pid = p["id"]
         pdir = PRESETS_DIR / pid
-        print(f"\n=== {pid} ===")
+        (pdir / "runs").mkdir(exist_ok=True)
         hero_urls = [f"{ASSET_BASE}/{pid}/{f}" for f in p["heroes"]]
         logo_url = f"{ASSET_BASE}/{pid}/{p['logo']}" if p.get("logo") else ""
-        runs_dir = pdir / "runs"
-        runs_dir.mkdir(exist_ok=True)
-        runs = []
         for hi, hero_url in enumerate(hero_urls, 1):
             for ci, cut in enumerate(p["cuts"], 1):
                 for fmt in p["formats"]:
-                    print(f"  hero{hi} · cut{ci} · {fmt}…", end=" ", flush=True)
                     payload = build_payload(
                         hero_url, fmt, cut, p["brand"], logo_url,
                         hero_urls[1] if len(hero_urls) > 1 else hero_url,
@@ -173,36 +171,69 @@ def main():
                     )
                     try:
                         sub = submit(payload)
-                        run_id = sub.get("run_id") or sub.get("id")
-                        if not run_id:
-                            print(f"no run id: {sub}")
+                        rid = sub.get("run_id") or sub.get("id")
+                        if not rid:
+                            print(f"  ✗ {pid} h{hi}c{ci}{fmt}: submit had no run id")
                             continue
-                        final = poll(run_id)
-                        imgs = extract_images(final.get("output"))
-                        sc = final.get("status_code")
-                        if sc != "succeeded" or not imgs:
-                            print(f"✗ {sc} — {final.get('failure_message')!r}; out={json.dumps(final.get('output'))[:300]}")
-                            runs.append({"hero_idx": hi, "cut_idx": ci, "format": fmt, "status": sc, "image": None})
-                            continue
-                        img_url = imgs[0]
-                        local_name = f"h{hi}-c{ci}-{fmt.replace(':','x')}.png"
-                        try:
-                            download(img_url, runs_dir / local_name)
-                        except Exception as e:
-                            print(f"download err: {e}")
-                            runs.append({"hero_idx": hi, "cut_idx": ci, "format": fmt, "status": "succeeded", "image": img_url, "cost": float(final.get("cost") or 0) or None, "duration_ms": final.get("duration_ms")})
-                            continue
-                        runs.append({
-                            "hero_idx": hi, "cut_idx": ci, "format": fmt,
-                            "status": "succeeded",
-                            "image": f"{ASSET_BASE}/{pid}/runs/{local_name}",
-                            "cost": float(final.get("cost") or 0) or None,
-                            "duration_ms": final.get("duration_ms"),
-                        })
-                        print(f"✓ {local_name}")
+                        print(f"  → {pid} h{hi}c{ci}{fmt}: submitted {rid}")
+                        jobs.append({"pid": pid, "hi": hi, "ci": ci, "fmt": fmt, "run_id": rid})
                     except Exception as e:
-                        print(f"err: {e}")
-                        runs.append({"hero_idx": hi, "cut_idx": ci, "format": fmt, "status": "failed", "image": None, "error": str(e)})
+                        print(f"  ✗ {pid} h{hi}c{ci}{fmt}: submit error: {e}")
+    print(f"\nsubmitted {len(jobs)} runs, polling…\n")
+
+    # Phase 2: poll each run to completion in parallel using threads.
+    import concurrent.futures
+    results_by_key = {}
+    def poll_job(job):
+        try:
+            final = poll(job["run_id"])
+        except Exception as e:
+            return {**job, "_error": str(e)}
+        return {**job, "_final": final}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as ex:
+        for done in concurrent.futures.as_completed([ex.submit(poll_job, j) for j in jobs]):
+            r = done.result()
+            key = f"{r['pid']}/h{r['hi']}c{r['ci']}{r['fmt']}"
+            if r.get("_error"):
+                print(f"  ✗ {key}: poll error: {r['_error']}")
+                results_by_key[key] = {**r, "status": "failed", "image": None, "error": r["_error"]}
+                continue
+            final = r["_final"]
+            sc = final.get("status_code")
+            imgs = extract_images(final.get("output"))
+            if sc != "succeeded" or not imgs:
+                print(f"  ✗ {key}: {sc} — {final.get('failure_message')!r}")
+                results_by_key[key] = {**r, "status": sc, "image": None}
+                continue
+            img_url = imgs[0]
+            local_name = f"h{r['hi']}-c{r['ci']}-{r['fmt'].replace(':','x')}.png"
+            local_dest = PRESETS_DIR / r["pid"] / "runs" / local_name
+            try:
+                download(img_url, local_dest)
+                results_by_key[key] = {**r, "status": "succeeded", "image": f"{ASSET_BASE}/{r['pid']}/runs/{local_name}", "cost": float(final.get("cost") or 0) or None, "duration_ms": final.get("duration_ms")}
+                print(f"  ✓ {key}: {local_name}")
+            except Exception as e:
+                results_by_key[key] = {**r, "status": "succeeded", "image": img_url, "cost": float(final.get("cost") or 0) or None, "duration_ms": final.get("duration_ms")}
+                print(f"  ⚠ {key}: download failed: {e}")
+
+    # Phase 3: assemble output by preset.
+    out_presets = []
+    for p in PRESETS:
+        pid = p["id"]
+        runs = []
+        for hi in range(1, len(p["heroes"]) + 1):
+            for ci in range(1, len(p["cuts"]) + 1):
+                for fmt in p["formats"]:
+                    key = f"{pid}/h{hi}c{ci}{fmt}"
+                    r = results_by_key.get(key, {"status": "failed", "image": None})
+                    runs.append({k: r[k] for k in ("hero_idx" if False else None,)})  # placeholder
+                    runs[-1] = {
+                        "hero_idx": hi, "cut_idx": ci, "format": fmt,
+                        "status": r.get("status"),
+                        "image": r.get("image"),
+                        "cost": r.get("cost"),
+                        "duration_ms": r.get("duration_ms"),
+                    }
         out_presets.append({"id": pid, "runs": runs})
     pathlib.Path("/tmp/presets-output.json").write_text(json.dumps(out_presets, indent=2))
     print(f"\n✓ wrote /tmp/presets-output.json")
