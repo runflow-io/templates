@@ -164,6 +164,10 @@ def main():
         for hi, hero_url in enumerate(hero_urls, 1):
             for ci, cut in enumerate(p["cuts"], 1):
                 for fmt in p["formats"]:
+                    local_name = f"h{hi}-c{ci}-{fmt.replace(':','x')}.jpg"
+                    if (pdir / "runs" / local_name).exists():
+                        print(f"  ⏭ {pid} h{hi}c{ci}{fmt}: already on disk, skip")
+                        continue
                     payload = build_payload(
                         hero_url, fmt, cut, p["brand"], logo_url,
                         hero_urls[1] if len(hero_urls) > 1 else hero_url,
@@ -206,10 +210,17 @@ def main():
                 results_by_key[key] = {**r, "status": sc, "image": None}
                 continue
             img_url = imgs[0]
-            local_name = f"h{r['hi']}-c{r['ci']}-{r['fmt'].replace(':','x')}.png"
+            local_name = f"h{r['hi']}-c{r['ci']}-{r['fmt'].replace(':','x')}.jpg"
             local_dest = PRESETS_DIR / r["pid"] / "runs" / local_name
             try:
-                download(img_url, local_dest)
+                # Download PNG to memory, convert to JPEG quality-85 to save space.
+                import urllib.request, io
+                from PIL import Image
+                req = urllib.request.Request(img_url, headers={"User-Agent": "preset-builder/1.0"})
+                with urllib.request.urlopen(req, timeout=180) as resp:
+                    raw = resp.read()
+                img = Image.open(io.BytesIO(raw)).convert("RGB")
+                img.save(local_dest, "JPEG", quality=85, optimize=True)
                 results_by_key[key] = {**r, "status": "succeeded", "image": f"{ASSET_BASE}/{r['pid']}/runs/{local_name}", "cost": float(final.get("cost") or 0) or None, "duration_ms": final.get("duration_ms")}
                 print(f"  ✓ {key}: {local_name}")
             except Exception as e:
@@ -225,15 +236,19 @@ def main():
             for ci in range(1, len(p["cuts"]) + 1):
                 for fmt in p["formats"]:
                     key = f"{pid}/h{hi}c{ci}{fmt}"
-                    r = results_by_key.get(key, {"status": "failed", "image": None})
-                    runs.append({k: r[k] for k in ("hero_idx" if False else None,)})  # placeholder
-                    runs[-1] = {
+                    r = results_by_key.get(key, {})
+                    # Fall back to disk if a prior pass already saved this combo.
+                    local_name = f"h{hi}-c{ci}-{fmt.replace(':','x')}.jpg"
+                    local_path = PRESETS_DIR / pid / "runs" / local_name
+                    if not r and local_path.exists():
+                        r = {"status": "succeeded", "image": f"{ASSET_BASE}/{pid}/runs/{local_name}"}
+                    runs.append({
                         "hero_idx": hi, "cut_idx": ci, "format": fmt,
-                        "status": r.get("status"),
+                        "status": r.get("status") or "failed",
                         "image": r.get("image"),
                         "cost": r.get("cost"),
                         "duration_ms": r.get("duration_ms"),
-                    }
+                    })
         out_presets.append({"id": pid, "runs": runs})
     pathlib.Path("/tmp/presets-output.json").write_text(json.dumps(out_presets, indent=2))
     print(f"\n✓ wrote /tmp/presets-output.json")

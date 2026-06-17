@@ -1678,13 +1678,18 @@ const PRESETS = [
       brandLogo: { preview_url: `${PRESET_ASSET_BASE}/chanel/logo.png`, runflow_uri: `${PRESET_ASSET_BASE}/chanel/logo.png`, filename: "logo.png" }
     },
     runs: [
-      {"hero_idx": 1, "cut_idx": 1, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h1-c1-1x1.jpg"},
-      {"hero_idx": 1, "cut_idx": 1, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h1-c1-9x16.jpg"},
-      {"hero_idx": 1, "cut_idx": 2, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h1-c2-9x16.jpg"},
-      {"hero_idx": 2, "cut_idx": 1, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h2-c1-9x16.jpg"},
-      {"hero_idx": 2, "cut_idx": 2, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h2-c2-1x1.jpg"},
-      {"hero_idx": 2, "cut_idx": 2, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h2-c2-9x16.jpg"},
-      {"hero_idx": 3, "cut_idx": 1, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h3-c1-1x1.jpg"}
+      {"hero_idx": 1, "cut_idx": 1, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h1-c1-1x1.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 1, "cut_idx": 1, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h1-c1-9x16.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 1, "cut_idx": 2, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h1-c2-1x1.jpg", "cost": 0.031679, "duration_ms": 44511},
+      {"hero_idx": 1, "cut_idx": 2, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h1-c2-9x16.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 2, "cut_idx": 1, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h2-c1-1x1.jpg", "cost": 0.03393, "duration_ms": 47579},
+      {"hero_idx": 2, "cut_idx": 1, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h2-c1-9x16.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 2, "cut_idx": 2, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h2-c2-1x1.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 2, "cut_idx": 2, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h2-c2-9x16.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 3, "cut_idx": 1, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h3-c1-1x1.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 3, "cut_idx": 1, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h3-c1-9x16.jpg", "cost": 0.035443, "duration_ms": 49895},
+      {"hero_idx": 3, "cut_idx": 2, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h3-c2-1x1.jpg", "cost": 0.036486, "duration_ms": 51311},
+      {"hero_idx": 3, "cut_idx": 2, "format": "9:16", "status": "failed", "image": null, "cost": null, "duration_ms": null}
     ]
   },
   {
@@ -1708,14 +1713,18 @@ const PRESETS = [
       brandLogo: { preview_url: `${PRESET_ASSET_BASE}/runflow/logo.png`, runflow_uri: `${PRESET_ASSET_BASE}/runflow/logo.png`, filename: "logo.png" }
     },
     runs: [
-      {"hero_idx": 1, "cut_idx": 1, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h1-c1-16x9.jpg"},
-      {"hero_idx": 1, "cut_idx": 2, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h1-c2-4x5.jpg"},
-      {"hero_idx": 2, "cut_idx": 1, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h2-c1-16x9.jpg"},
-      {"hero_idx": 2, "cut_idx": 1, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h2-c1-4x5.jpg"},
-      {"hero_idx": 2, "cut_idx": 2, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h2-c2-16x9.jpg"},
-      {"hero_idx": 3, "cut_idx": 1, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h3-c1-16x9.jpg"},
-      {"hero_idx": 3, "cut_idx": 1, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h3-c1-4x5.jpg"},
-      {"hero_idx": 3, "cut_idx": 2, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h3-c2-16x9.jpg"}
+      {"hero_idx": 1, "cut_idx": 1, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h1-c1-16x9.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 1, "cut_idx": 1, "format": "4:5", "status": "failed", "image": null, "cost": null, "duration_ms": null},
+      {"hero_idx": 1, "cut_idx": 2, "format": "16:9", "status": "timeout", "image": null, "cost": null, "duration_ms": null},
+      {"hero_idx": 1, "cut_idx": 2, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h1-c2-4x5.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 2, "cut_idx": 1, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h2-c1-16x9.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 2, "cut_idx": 1, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h2-c1-4x5.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 2, "cut_idx": 2, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h2-c2-16x9.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 2, "cut_idx": 2, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h2-c2-4x5.jpg", "cost": 0.041692, "duration_ms": 58743},
+      {"hero_idx": 3, "cut_idx": 1, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h3-c1-16x9.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 3, "cut_idx": 1, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h3-c1-4x5.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 3, "cut_idx": 2, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h3-c2-16x9.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 3, "cut_idx": 2, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h3-c2-4x5.jpg", "cost": 0.034243, "duration_ms": 48210}
     ]
   },
   {
@@ -1739,8 +1748,18 @@ const PRESETS = [
       brandLogo: { preview_url: `${PRESET_ASSET_BASE}/ikea/logo.jpg`, runflow_uri: `${PRESET_ASSET_BASE}/ikea/logo.jpg`, filename: "logo.jpg" }
     },
     runs: [
-      {"hero_idx": 1, "cut_idx": 2, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h1-c2-9x16.jpg"},
-      {"hero_idx": 3, "cut_idx": 2, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h3-c2-9x16.jpg"}
+      {"hero_idx": 1, "cut_idx": 1, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h1-c1-9x16.jpg", "cost": 0.051601, "duration_ms": 72657},
+      {"hero_idx": 1, "cut_idx": 1, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h1-c1-16x9.jpg", "cost": 0.036615, "duration_ms": 51583},
+      {"hero_idx": 1, "cut_idx": 2, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h1-c2-9x16.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 1, "cut_idx": 2, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h1-c2-16x9.jpg", "cost": 0.033919, "duration_ms": 47748},
+      {"hero_idx": 2, "cut_idx": 1, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h2-c1-9x16.jpg", "cost": 0.047515, "duration_ms": 66983},
+      {"hero_idx": 2, "cut_idx": 1, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h2-c1-16x9.jpg", "cost": 0.04415, "duration_ms": 62308},
+      {"hero_idx": 2, "cut_idx": 2, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h2-c2-9x16.jpg", "cost": 0.036354, "duration_ms": 51229},
+      {"hero_idx": 2, "cut_idx": 2, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h2-c2-16x9.jpg", "cost": 0.041451, "duration_ms": 58431},
+      {"hero_idx": 3, "cut_idx": 1, "format": "9:16", "status": "failed", "image": null, "cost": null, "duration_ms": null},
+      {"hero_idx": 3, "cut_idx": 1, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h3-c1-16x9.jpg", "cost": 0.037385, "duration_ms": 52546},
+      {"hero_idx": 3, "cut_idx": 2, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h3-c2-9x16.jpg", "cost": null, "duration_ms": null},
+      {"hero_idx": 3, "cut_idx": 2, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h3-c2-16x9.jpg", "cost": 0.043277, "duration_ms": 61066}
     ]
   }
 ];
