@@ -30,6 +30,7 @@ export default async function handler(req, res) {
 
   const body = await readJson(req);
   const judge = (body.judge_name || "").trim() || "anonymous";
+  const company = (body.judge_company || "").trim();
   const submittedAt = body.submitted_at || new Date().toISOString();
   const inputs = body.inputs || {};
   const results = Array.isArray(body.results) ? body.results : [];
@@ -55,6 +56,7 @@ export default async function handler(req, res) {
         }
         const page = await createNotionPage(notionKey, databaseId, {
           voter: judge,
+          company,
           vote: r.rating,
           feedback: (r.feedback || "").trim(),
           fileUploadId,
@@ -80,7 +82,7 @@ export default async function handler(req, res) {
     : likes === 0 ? "all negative 🔴"
     : `${Math.round((likes / rated.length) * 100)}% positive`;
   const slackText =
-    `:bust_in_silhouette: *${judge}* voted on Contest #01` +
+    `:bust_in_silhouette: *${judge}*${company ? ` (${company})` : ""} voted on Contest #01` +
     ` — ${likes}👍 ${dislikes}👎  ·  ${sentiment}` +
     (briefLabel ? `  ·  brief: _${briefLabel}_` : "") +
     `\nFull board → <${databaseUrl}|Contest #01 · Judge Votes>` +
@@ -147,6 +149,7 @@ async function createNotionPage(token, databaseId, row) {
     "Vote": { select: { name: row.vote } },
     "Submitted at": { date: { start: row.submittedAt } },
   };
+  if (row.company) properties["Company"] = { rich_text: [{ text: { content: row.company.slice(0, 500) } }] };
   if (row.feedback) properties["Feedback"] = { rich_text: [{ text: { content: row.feedback.slice(0, 1900) } }] };
   if (row.tile) properties["Tile"] = { rich_text: [{ text: { content: row.tile } }] };
   if (row.briefLabel) properties["Brief label"] = { rich_text: [{ text: { content: row.briefLabel } }] };
