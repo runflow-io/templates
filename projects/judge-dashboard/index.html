@@ -2711,6 +2711,7 @@ async function submitRatings() {
 
   const payload = {
     judge_name: JUDGE_NAME,
+    judge_company: JUDGE_COMPANY,
     submitted_at: new Date().toISOString(),
     inputs: readForm(),
     results: rated.map(r => ({
