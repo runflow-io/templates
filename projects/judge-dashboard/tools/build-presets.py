@@ -118,7 +118,7 @@ def download(url, dest):
 PRESETS = [
     {
         "id": "chanel",
-        "heroes": ["hero1.webp", "hero2.webp", "hero3.jpg"],
+        "heroes": ["hero1.jpg", "hero2.jpg", "hero3.jpg"],
         "logo": "logo.png",
         "brand": {"brandColor1": "#09090B", "brandColor2": "", "brandFont": "Couture", "brandTone": "premium"},
         "cuts": [
@@ -129,7 +129,7 @@ PRESETS = [
     },
     {
         "id": "runflow",
-        "heroes": ["hero1.jpg", "hero2.avif", "hero3.jpg"],
+        "heroes": ["hero1.jpg", "hero2.jpg", "hero3.jpg"],
         "logo": "logo.png",
         "brand": {"brandColor1": "#09090B", "brandColor2": "#FBBF24", "brandFont": "Bricolage Grotesque", "brandTone": "minimal"},
         "cuts": [
@@ -140,7 +140,7 @@ PRESETS = [
     },
     {
         "id": "ikea",
-        "heroes": ["hero1.avif", "hero2.webp", "hero3.jpeg"],
+        "heroes": ["hero1.jpg", "hero2.jpg", "hero3.jpg"],
         "logo": "logo.jpg",
         "brand": {"brandColor1": "#0058A3", "brandColor2": "#FFDB00", "brandFont": "Noto Sans", "brandTone": "playful"},
         "cuts": [
