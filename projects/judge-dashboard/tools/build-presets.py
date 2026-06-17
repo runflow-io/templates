@@ -158,7 +158,7 @@ PRESETS = [
 def main():
     # Phase 1: submit every (hero × cut × format) in parallel — Runflow handles
     # the queue, we just collect run_ids and poll them as a batch afterwards.
-    jobs = []  # list of dicts: pid, hi, ci, fmt, run_id
+    jobs = []  # list of dicts: pid, hi, ci, fmt, run_id, prompt, hero_url
     for p in PRESETS:
         pid = p["id"]
         pdir = PRESETS_DIR / pid
@@ -172,11 +172,7 @@ def main():
                     if (pdir / "runs" / local_name).exists():
                         print(f"  ⏭ {pid} h{hi}c{ci}{fmt}: already on disk, skip")
                         continue
-                    payload = build_payload(
-                        hero_url, fmt, cut, p["brand"], logo_url,
-                        hero_urls[1] if len(hero_urls) > 1 else hero_url,
-                        hero_urls[2] if len(hero_urls) > 2 else hero_url,
-                    )
+                    payload = build_payload(hero_url, fmt, cut, p["brand"], logo_url)
                     try:
                         sub = submit(payload)
                         rid = sub.get("run_id") or sub.get("id")
@@ -184,7 +180,10 @@ def main():
                             print(f"  ✗ {pid} h{hi}c{ci}{fmt}: submit had no run id")
                             continue
                         print(f"  → {pid} h{hi}c{ci}{fmt}: submitted {rid}")
-                        jobs.append({"pid": pid, "hi": hi, "ci": ci, "fmt": fmt, "run_id": rid})
+                        jobs.append({
+                            "pid": pid, "hi": hi, "ci": ci, "fmt": fmt, "run_id": rid,
+                            "prompt": payload["prompt"], "hero_url": hero_url,
+                        })
                     except Exception as e:
                         print(f"  ✗ {pid} h{hi}c{ci}{fmt}: submit error: {e}")
     print(f"\nsubmitted {len(jobs)} runs, polling…\n")
@@ -231,27 +230,35 @@ def main():
                 results_by_key[key] = {**r, "status": "succeeded", "image": img_url, "cost": float(final.get("cost") or 0) or None, "duration_ms": final.get("duration_ms")}
                 print(f"  ⚠ {key}: download failed: {e}")
 
-    # Phase 3: assemble output by preset.
+    # Phase 3: assemble output by preset. Every tile gets the prompt + hero_url
+    # that produced it so Goke can correlate ratings to inputs in Notion.
     out_presets = []
     for p in PRESETS:
         pid = p["id"]
+        hero_urls = [f"{ASSET_BASE}/{pid}/{f}" for f in p["heroes"]]
+        logo_url = f"{ASSET_BASE}/{pid}/{p['logo']}" if p.get("logo") else ""
         runs = []
         for hi in range(1, len(p["heroes"]) + 1):
             for ci in range(1, len(p["cuts"]) + 1):
                 for fmt in p["formats"]:
                     key = f"{pid}/h{hi}c{ci}{fmt}"
                     r = results_by_key.get(key, {})
-                    # Fall back to disk if a prior pass already saved this combo.
                     local_name = f"h{hi}-c{ci}-{fmt.replace(':','x')}.jpg"
                     local_path = PRESETS_DIR / pid / "runs" / local_name
                     if not r and local_path.exists():
                         r = {"status": "succeeded", "image": f"{ASSET_BASE}/{pid}/runs/{local_name}"}
+                    # Reconstruct the prompt + hero_url deterministically from
+                    # the preset definition so skipped tiles get the right
+                    # context (build_payload is pure given the same inputs).
+                    payload = build_payload(hero_urls[hi-1], fmt, p["cuts"][ci-1], p["brand"], logo_url)
                     runs.append({
                         "hero_idx": hi, "cut_idx": ci, "format": fmt,
                         "status": r.get("status") or "failed",
                         "image": r.get("image"),
                         "cost": r.get("cost"),
                         "duration_ms": r.get("duration_ms"),
+                        "prompt": payload["prompt"],
+                        "hero_url": hero_urls[hi-1],
                     })
         out_presets.append({"id": pid, "runs": runs})
     pathlib.Path("/tmp/presets-output.json").write_text(json.dumps(out_presets, indent=2))
