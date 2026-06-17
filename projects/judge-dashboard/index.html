@@ -226,7 +226,15 @@
   .hero-dropzone.dragging { border-color: var(--amber); border-style: solid; background: var(--amber-soft); }
   .hero-dropzone.filled { border-style: solid; border-color: var(--border); padding: 0; }
   .hero-dropzone.uploading { border-color: var(--amber); }
-  .logo-dropzone { aspect-ratio: 16 / 9; width: 25%; }
+  .logo-dropzone { aspect-ratio: 1 / 1; width: 100%; }
+  .brand-kit-grid {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 18px;
+    align-items: start;
+  }
+  .brand-kit-grid .brand-logo-col { min-width: 0; }
+  .brand-kit-grid .brand-fields-col { min-width: 0; }
 
   .hero-empty {
     height: 100%;
@@ -1311,7 +1319,7 @@
     font-size: 14px;
     line-height: 1.5;
   }
-  .modal input[type="text"], .modal textarea {
+  .modal input[type="text"], .modal input[type="password"], .modal textarea {
     width: 100%;
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -1320,7 +1328,7 @@
     font-size: 15px;
     margin-bottom: 16px;
   }
-  .modal input[type="text"]:focus, .modal textarea:focus {
+  .modal input[type="text"]:focus, .modal input[type="password"]:focus, .modal textarea:focus {
     outline: none;
     border-color: var(--amber);
     box-shadow: 0 0 0 3px var(--amber-soft);
@@ -1389,18 +1397,6 @@
   </div>
 </div>
 
-<!-- Input set picker modal -->
-<div class="modal-overlay" id="setPickerModal">
-  <div class="modal">
-    <h3>Load a saved input set</h3>
-    <p>Pick a previously-saved brief to fill the form. Your existing inputs will be replaced.</p>
-    <div id="setPickerList" style="max-height: 320px; overflow-y: auto; margin-bottom: 12px;"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="document.getElementById('setPickerModal').classList.remove('open')">Close</button>
-      <button class="btn btn-ghost" id="useSampleBtn">Use built-in sample</button>
-    </div>
-  </div>
-</div>
 
 <!-- Feedback modal (shown on dislike) -->
 <!-- Submit confirmation modal -->
@@ -1441,11 +1437,11 @@
       <!-- Section 1: Heroes (full width) -->
       <div class="form-section">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
-          <h3 class="step-label">Step 1: Upload hero images</h3>
-          <div style="display: flex; gap: 6px;">
-            <button class="btn btn-ghost btn-sm" id="loadSetBtn" type="button">↻ Load a saved set</button>
-            <button class="btn btn-ghost btn-sm" id="saveInputs" type="button">＋ Save inputs as set</button>
+          <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+            <h3 class="step-label" id="step1Label" style="margin: 0;">Step 1: Choose a preset</h3>
+            <div class="chip-row" id="presetChips"></div>
           </div>
+          <button class="btn btn-ghost btn-sm" id="modeToggleBtn" type="button">＋ I want to test my own assets</button>
         </div>
         <h4 class="section-h" style="margin: 0 0 12px 0;">Hero images <span class="meta">up to 3</span></h4>
         <div class="hero-grid">
@@ -1497,63 +1493,68 @@
         </div>
       </div>
 
-      <!-- Section 2: Brand kit (left) + Audience cuts (right) -->
+      <!-- Section 2: Brand kit (left) + Audience angles (right) -->
       <div class="form-row">
         <div>
           <h3 class="step-label">Step 2: Set your brand kit</h3>
-          <div class="hero-dropzone logo-dropzone" id="brandLogo-zone"
-               onclick="document.getElementById('brandLogo-file').click()"
-               ondragover="event.preventDefault(); this.classList.add('dragging');"
-               ondragleave="this.classList.remove('dragging');"
-               ondrop="event.preventDefault(); this.classList.remove('dragging'); handleUpload('brandLogo', event.dataTransfer.files[0])">
-            <input type="hidden" id="brandLogo" />
-            <input type="file" id="brandLogo-file" accept="image/*" hidden onchange="handleUpload('brandLogo', this.files[0])" />
-            <div class="hero-empty">
-              <div class="hero-label">Brand logo</div>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
-              <div class="hero-empty-text">Click or drop image</div>
-              <div class="hero-empty-sub">PNG, JPG, SVG, WebP · ≤ 50 MB</div>
-            </div>
-            <div class="hero-filled" id="brandLogo-preview"></div>
-          </div>
-          <div class="row-2">
-            <div class="field">
-              <label class="field-label">Primary color 1</label>
-              <div class="color-row">
-                <div id="swatch1" class="color-swatch" style="background:#1F143D"></div>
-                <input type="text" id="brandColor1" class="mono" value="#1F143D" />
+          <div class="brand-kit-grid">
+            <div class="brand-logo-col">
+              <label class="field-label" style="margin-bottom: 6px;">Brand logo</label>
+              <div class="hero-dropzone logo-dropzone" id="brandLogo-zone"
+                   onclick="document.getElementById('brandLogo-file').click()"
+                   ondragover="event.preventDefault(); this.classList.add('dragging');"
+                   ondragleave="this.classList.remove('dragging');"
+                   ondrop="event.preventDefault(); this.classList.remove('dragging'); handleUpload('brandLogo', event.dataTransfer.files[0])">
+                <input type="hidden" id="brandLogo" />
+                <input type="file" id="brandLogo-file" accept="image/*" hidden onchange="handleUpload('brandLogo', this.files[0])" />
+                <div class="hero-empty">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
+                  <div class="hero-empty-text">Click or drop image</div>
+                  <div class="hero-empty-sub">PNG, JPG, SVG, WebP</div>
+                </div>
+                <div class="hero-filled" id="brandLogo-preview"></div>
               </div>
             </div>
-            <div class="field">
-              <label class="field-label">Primary color 2</label>
-              <div class="color-row">
-                <div id="swatch2" class="color-swatch" style="background:#6C00FF"></div>
-                <input type="text" id="brandColor2" class="mono" value="#6C00FF" />
+            <div class="brand-fields-col">
+              <div class="row-2">
+                <div class="field">
+                  <label class="field-label">Primary color</label>
+                  <div class="color-row">
+                    <div id="swatch1" class="color-swatch" style="background:#1F143D"></div>
+                    <input type="text" id="brandColor1" class="mono" value="#1F143D" />
+                  </div>
+                </div>
+                <div class="field">
+                  <label class="field-label">Accent color</label>
+                  <div class="color-row">
+                    <div id="swatch2" class="color-swatch" style="background:#6C00FF"></div>
+                    <input type="text" id="brandColor2" class="mono" value="#6C00FF" />
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-          <div class="row-2">
-            <div class="field">
-              <label class="field-label">Font (Google Font name)</label>
-              <input type="text" id="brandFont" value="Inter" />
-            </div>
-            <div class="field">
-              <label class="field-label">Tone</label>
-              <select id="brandTone">
-                <option>playful</option>
-                <option>premium</option>
-                <option>technical</option>
-                <option>minimal</option>
-              </select>
+              <div class="row-2">
+                <div class="field">
+                  <label class="field-label">Font</label>
+                  <input type="text" id="brandFont" value="Inter" placeholder="Google Font name" />
+                </div>
+                <div class="field">
+                  <label class="field-label">Tone</label>
+                  <select id="brandTone">
+                    <option>playful</option>
+                    <option>premium</option>
+                    <option>technical</option>
+                    <option>minimal</option>
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         <div>
           <h3 class="step-label">Step 3: Set your copy or leave it as is</h3>
-          <h4 class="section-h">Audience cuts <span class="meta">label + headline + subhead + CTA</span></h4>
+          <h4 class="section-h">Audience angles <span class="meta">angle + headline + subhead + CTA · max 2</span></h4>
           <div id="cutsList"></div>
-          <button class="btn btn-ghost btn-sm" id="addCutBtn" style="margin-top: 8px;">+ Add another cut</button>
         </div>
       </div>
 
@@ -1570,9 +1571,6 @@
       </div>
     </div>
 
-    <div style="margin-top: 8px; display: flex; gap: 8px; justify-content: flex-end;" id="inputsActions">
-      <span id="saveStatus" style="align-self:center; color: var(--muted); font-size:12px;"></span>
-    </div>
   </section>
 
   <!-- BOTTOM: results gallery -->
@@ -1590,8 +1588,8 @@
         <span id="genStatusPill"></span>
         <span id="genProgress" class="mono" style="font-size: 12px; color: var(--muted); margin-left: 8px;"></span>
       </div>
-      <div class="stat">
-        <span class="label">Total cost</span>
+      <div class="stat admin-cost">
+        <span class="label">Total cost <span style="font-size: 9px; color: var(--faint);">(internal)</span></span>
         <span class="value placeholder" id="genTotalCost">—</span>
       </div>
       <div class="stat">
@@ -1642,12 +1640,33 @@ const SAMPLE = {
   brandFont: "Bricolage Grotesque",
   brandTone: "premium",
   cuts: [
-    { label: "Gen-Z creator", headline: "Make the next thing", subhead: "Tools that get out of the way", cta: "Start free" },
     { label: "Performance marketer", headline: "Variants overnight, on-brand", subhead: "Cut creative-refresh costs by 4x", cta: "Get started" },
     { label: "Indie founder", headline: "Ship the ad today", subhead: "From one hero to a full set", cta: "Try Runflow" }
   ],
   formats: ["1:1", "9:16"]
 };
+
+/* Presets the judge can pick from at Step 1. Each preset can carry hero
+   images (asset_id-based URIs uploaded ahead of time) + brand kit + angles.
+   Filling in heroes requires runflow://assets/{id} URIs from Runflow's
+   asset storage — see api/upload-create.mjs. */
+const PRESETS = [
+  {
+    id: "chanel",
+    name: "Chanel · Perfume",
+    data: {
+      brandColor1: "#09090B",
+      brandColor2: "",
+      brandFont: "Couture",
+      brandTone: "premium",
+      cuts: [
+        { label: "Performance marketer", headline: "Variants overnight, on-brand", subhead: "Cut creative-refresh costs by 4x", cta: "Get started" },
+        { label: "Indie founder", headline: "Ship the ad today", subhead: "From one hero to a full set", cta: "Try Runflow" }
+      ],
+      formats: ["1:1", "9:16"]
+    }
+  }
+];
 
 /* Single workflow endpoint — judges don't see this, the dashboard runs every
    set of inputs through one canonical workflow and surfaces only images. */
@@ -1656,18 +1675,17 @@ const WORKFLOW_ENDPOINT = "https://api.runflow.io/v1/comfyui-workflows/runflow-a
 let UPLOADS = JSON.parse(localStorage.getItem("runflow_uploads_c01_v2") || "{}");
 let BATCHES = JSON.parse(localStorage.getItem("runflow_batches_v1") || "[]");
 let CURRENT_BATCH_ID = localStorage.getItem("runflow_current_batch_v1") || "";
-let INPUT_SETS = JSON.parse(localStorage.getItem("runflow_input_sets_v1") || "[]");
 let JUDGE_NAME = localStorage.getItem("runflow_judge_name_v1") || "";
 let JUDGE_COMPANY = localStorage.getItem("runflow_judge_company_v1") || "";
-// Judges run the flow with their own assets — everyone has admin-level access.
-let IS_ADMIN = true;
+// IS_ADMIN gates internal-cost visibility (and tile delete/recover/raw output).
+// Everyone has access to the input form, generation, and rating regardless.
+let IS_ADMIN = localStorage.getItem("runflow_is_admin_v1") === "true";
 
 const ADMIN_PASSWORDS = ["Runflow.io/team", "ContestJudges2026"];
 
 function saveU() { localStorage.setItem("runflow_uploads_c01_v2", JSON.stringify(UPLOADS)); }
 function saveBatches() { localStorage.setItem("runflow_batches_v1", JSON.stringify(BATCHES)); }
 function saveCurrentBatch() { localStorage.setItem("runflow_current_batch_v1", CURRENT_BATCH_ID); }
-function saveInputSets() { localStorage.setItem("runflow_input_sets_v1", JSON.stringify(INPUT_SETS)); }
 function saveJudgeName() { localStorage.setItem("runflow_judge_name_v1", JUDGE_NAME); }
 function saveJudgeCompany() { localStorage.setItem("runflow_judge_company_v1", JUDGE_COMPANY); }
 function saveAdmin() { localStorage.setItem("runflow_is_admin_v1", IS_ADMIN ? "true" : "false"); }
@@ -1722,41 +1740,34 @@ function requestStop() { STOP_REQUESTED = true; }
 function clearStop() { STOP_REQUESTED = false; }
 function isStopRequested() { return STOP_REQUESTED; }
 
-function addCut() {
-  const inputs = getInputs();
-  inputs.cuts = (inputs.cuts || []).concat([{ label: "", headline: "", subhead: "", cta: "" }]);
-  setInputs(inputs);
-  renderCuts();
-}
-function removeCut(idx) {
-  const inputs = getInputs();
-  if (!inputs.cuts || inputs.cuts.length <= 1) return;
-  inputs.cuts.splice(idx, 1);
-  setInputs(inputs);
-  renderCuts();
+const MAX_ANGLES = 2;
+function ensureAngleSlots(inputs) {
+  inputs.cuts = (inputs.cuts || []).slice(0, MAX_ANGLES);
+  while (inputs.cuts.length < MAX_ANGLES) {
+    inputs.cuts.push({ label: "", headline: "", subhead: "", cta: "" });
+  }
+  return inputs;
 }
 
-/* ---- Cuts (audience cuts, collapsible pills) ---- */
+/* ---- Angles (audience cuts, collapsible pills) ---- */
 function cutPreview(c) {
-  const parts = [c.headline, c.subhead, c.cta].filter(Boolean);
-  if (c.label) return `<strong>${escHtml(c.label)}</strong>${parts.length ? ` <span style="color:var(--muted);"> · ${escHtml(parts.join(" · "))}</span>` : ""}`;
-  if (parts.length) return escHtml(parts.join(" · "));
+  if (c.label) return `<strong>${escHtml(c.label)}</strong>`;
   return `<span class="empty">empty — click to fill</span>`;
 }
 function renderCuts() {
-  const inputs = getInputs();
+  const inputs = ensureAngleSlots(getInputs());
+  setInputs(inputs);
   const html = inputs.cuts.map((c, i) => `
     <details class="cut-card" ${i === 0 ? "open" : ""}>
       <summary>
-        <span class="cut-pill-label">Cut ${i+1}</span>
+        <span class="cut-pill-label">Angle ${i+1}</span>
         <span class="cut-pill-preview">${cutPreview(c)}</span>
-        <button class="cut-remove" title="Remove this cut" onclick="event.preventDefault(); event.stopPropagation(); removeCut(${i})">×</button>
         <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
       </summary>
       <div class="cut-body">
         <div class="row-2">
           <div class="field">
-            <label class="field-label">Label</label>
+            <label class="field-label">Angle</label>
             <input type="text" data-cut="${i}" data-key="label" value="${escAttr(c.label)}" />
           </div>
           <div class="field">
@@ -1800,6 +1811,75 @@ function getInputs() {
 }
 function setInputs(v) {
   localStorage.setItem("runflow_inputs_c01_v2", JSON.stringify(v));
+}
+
+/* ---- Step 1 modes: "preset" (judge picks one of N curated briefs) vs
+   "custom" (judge uploads their own assets). Preset mode is the default. */
+let STEP1_MODE = localStorage.getItem("runflow_step1_mode_v1") || "preset";
+let ACTIVE_PRESET_ID = localStorage.getItem("runflow_active_preset_v1") || (PRESETS[0]?.id || "");
+
+function setStep1Mode(mode) {
+  STEP1_MODE = mode;
+  localStorage.setItem("runflow_step1_mode_v1", mode);
+  renderStep1();
+}
+function applyPreset(presetId) {
+  const p = PRESETS.find(x => x.id === presetId);
+  if (!p) return;
+  ACTIVE_PRESET_ID = presetId;
+  localStorage.setItem("runflow_active_preset_v1", presetId);
+  writeForm(p.data);
+  setInputs(p.data);
+  renderCuts();
+  renderPresetChips();
+}
+function renderPresetChips() {
+  const wrap = document.getElementById("presetChips");
+  if (!wrap) return;
+  wrap.innerHTML = PRESETS.map(p =>
+    `<span class="chip ${p.id === ACTIVE_PRESET_ID ? "active" : ""}" data-preset="${p.id}">${escHtml(p.name)}</span>`
+  ).join("");
+  wrap.querySelectorAll(".chip").forEach(el => {
+    el.addEventListener("click", () => applyPreset(el.dataset.preset));
+  });
+}
+function renderStep1() {
+  const label = document.getElementById("step1Label");
+  const chips = document.getElementById("presetChips");
+  const toggle = document.getElementById("modeToggleBtn");
+  if (!label || !chips || !toggle) return;
+  if (STEP1_MODE === "preset") {
+    label.textContent = "Step 1: Choose a preset";
+    chips.style.display = "";
+    toggle.textContent = "＋ I want to test my own assets";
+    renderPresetChips();
+  } else {
+    label.textContent = "Step 1: Upload hero images";
+    chips.style.display = "none";
+    toggle.textContent = "↺ See preset instead";
+  }
+}
+function enterCustomMode() {
+  // Clear heroes, brand logo, brand kit + cuts back to a blank slate so the
+  // judge can upload fresh assets. Saved sets stay intact.
+  UPLOADS = {};
+  saveU();
+  ["hero1", "hero2", "hero3", "brandLogo"].forEach(slot => {
+    const hidden = document.getElementById(slot); if (hidden) hidden.value = "";
+    renderUploadPreview(slot);
+  });
+  const blank = { brandColor1: "#000000", brandColor2: "", brandFont: "", brandTone: "premium", cuts: [{ label: "", headline: "", subhead: "", cta: "" }, { label: "", headline: "", subhead: "", cta: "" }], formats: ["1:1", "9:16"] };
+  writeForm(blank);
+  setInputs(blank);
+  renderCuts();
+  ACTIVE_PRESET_ID = "";
+  localStorage.setItem("runflow_active_preset_v1", "");
+  setStep1Mode("custom");
+}
+function returnToPresetMode() {
+  setStep1Mode("preset");
+  const fallback = PRESETS[0];
+  if (fallback) applyPreset(fallback.id);
 }
 function readForm() {
   const cuts = Array.from(document.querySelectorAll("#cutsList .cut-card")).map((c, i) => {
@@ -2304,6 +2384,7 @@ function escAttr(s) {
 }
 
 function renderAll() {
+  renderStep1();
   renderBatchPills();
   renderGenerateControls();
   renderResults();
@@ -2343,30 +2424,13 @@ function deleteBatch(id) {
 
 function applyAdminGating() {
   const isAdmin = IS_ADMIN;
-  // Non-admins see the brief read-only; admins can edit and generate.
-  const inputSection = document.querySelector('main > section:first-child');
-  if (inputSection) inputSection.classList.toggle("read-only", !isAdmin);
-  // Toggle native disabled/readonly on every form field in the brief
-  if (inputSection) {
-    inputSection.querySelectorAll("input, select, textarea").forEach(el => {
-      if (el.type === "file") { el.disabled = !isAdmin; return; }
-      el.readOnly = !isAdmin;
-      el.disabled = !isAdmin && el.tagName === "SELECT"; // selects don't honor readonly, fall back to disabled
-    });
-    // Buttons that modify the brief — hide for non-admin
-    ["saveInputs", "loadSetBtn", "addCutBtn"].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.style.display = isAdmin ? "" : "none";
-    });
-    // Hide × remove on cuts, the clear-upload × on dropzones, and disable dropzone clicks
-    inputSection.querySelectorAll(".cut-remove, .clear-btn").forEach(el => { el.style.display = isAdmin ? "" : "none"; });
-  }
-  // Generate button: visible only to admin
-  const genBtn = document.getElementById("generateBtn");
-  if (genBtn) genBtn.style.display = isAdmin ? "" : "none";
-  // Re-render pills so admin × buttons appear/disappear
+  // Hide internal-cost UI from judges. Cost is our infra cost, not theirs —
+  // they shouldn't think it's a bill they're being shown.
+  document.querySelectorAll(".admin-cost").forEach(el => {
+    el.style.display = isAdmin ? "" : "none";
+  });
+  // Re-render pills + tiles so admin × buttons appear/disappear.
   renderBatchPills();
-  // Re-render tiles so admin delete × appears
   renderResults();
 }
 
@@ -2565,10 +2629,8 @@ function closeNameModal() {
 function setJudgeIdentity(name, company, password) {
   JUDGE_NAME = (name || "").trim();
   JUDGE_COMPANY = (company || "").trim();
-  // Judges run the flow with their own assets, so everyone has full access
-  // to the input form, generation, and rating. Password input is kept for
-  // future use but no longer gates features.
-  IS_ADMIN = true;
+  // Password gates cost visibility + admin tile actions, not the input form.
+  IS_ADMIN = ADMIN_PASSWORDS.includes((password || "").trim());
   saveJudgeName(); saveJudgeCompany(); saveAdmin();
   renderJudgeTag();
   applyAdminGating();
@@ -2579,45 +2641,6 @@ function renderJudgeTag() {
   if (!JUDGE_NAME) { el.innerHTML = ""; return; }
   const role = IS_ADMIN ? "admin" : "judge";
   el.innerHTML = `<span class="judge-tag">${role}: ${escHtml(JUDGE_NAME)}<span class="change-link" onclick="openNameModal()">change</span></span>`;
-}
-
-function openInputSetPicker() {
-  const list = document.getElementById("setPickerList");
-  if (!INPUT_SETS.length) {
-    list.innerHTML = `<div style="color: var(--muted); padding: 12px; font-size: 13px;">No saved sets yet. Fill in the form and click <strong>Save inputs as set</strong> to create one.</div>`;
-  } else {
-    list.innerHTML = INPUT_SETS.slice().reverse().map(s => `
-      <div class="set-row">
-        <div style="flex: 1; cursor: pointer;" onclick="loadInputSet('${s.id}')">
-          <div style="font-weight: 600;">${escHtml(s.name)}</div>
-          <div class="mono" style="font-size: 11px; color: var(--muted);">${(s.inputs?.cuts || []).length} cuts · ${(s.inputs?.formats || []).join(", ")} · ${new Date(s.created_at).toLocaleString()}</div>
-        </div>
-        <button class="btn btn-ghost btn-sm" onclick="deleteInputSet('${s.id}')" title="Delete this set">×</button>
-      </div>
-    `).join("");
-  }
-  document.getElementById("setPickerModal").classList.add("open");
-}
-function loadInputSet(id) {
-  const s = INPUT_SETS.find(x => x.id === id);
-  if (!s) return;
-  writeForm(s.inputs);
-  setInputs(s.inputs);
-  if (s.uploads) {
-    for (const [k, v] of Object.entries(s.uploads)) {
-      if (v) { UPLOADS[k] = v; }
-      else delete UPLOADS[k];
-    }
-    saveU();
-    ["hero1","hero2","hero3","brandLogo"].forEach(renderUploadPreview);
-  }
-  document.getElementById("setPickerModal").classList.remove("open");
-}
-function deleteInputSet(id) {
-  if (!confirm("Delete this saved set?")) return;
-  INPUT_SETS = INPUT_SETS.filter(x => x.id !== id);
-  saveInputSets();
-  openInputSetPicker(); // re-render
 }
 
 let FEEDBACK_TARGET = null;
@@ -2908,7 +2931,9 @@ function updateLightbox() {
   const visible = visibleResultIndices();
   const pos = visible.indexOf(LIGHTBOX_IDX) + 1;
   document.getElementById("lightboxCaption").innerHTML =
-    `<strong>${pos}/${visible.length}</strong> · Hero ${r.hero_idx} · Cut ${r.cut_idx} · ${r.format} · $${(r.cost||0).toFixed(3)} · ${((r.duration_ms||0)/1000).toFixed(1)}s`;
+    `<strong>${pos}/${visible.length}</strong> · Hero ${r.hero_idx} · Angle ${r.cut_idx} · ${r.format}` +
+    (IS_ADMIN ? ` · $${(r.cost||0).toFixed(3)}` : "") +
+    ` · ${((r.duration_ms||0)/1000).toFixed(1)}s`;
   updateLightboxRateButtons();
 }
 function updateLightboxRateButtons() {
@@ -2951,32 +2976,10 @@ function attachFormEvents() {
     if (!e.target.classList.contains("chip")) return;
     e.target.classList.toggle("active");
   });
-  document.getElementById("addCutBtn").addEventListener("click", () => addCut());
   document.getElementById("cutsList").addEventListener("input", () => {});
-  document.getElementById("saveInputs").addEventListener("click", () => {
-    if (!IS_ADMIN) return;
-    const defaultName = `Set ${INPUT_SETS.length + 1} · ${new Date().toLocaleDateString()}`;
-    const name = prompt("Name this input set (so you can reload it later):", defaultName);
-    if (name === null) return;
-    setInputs(readForm());
-    const set = {
-      id: "set-" + Date.now(),
-      name: (name || defaultName).trim() || defaultName,
-      created_at: new Date().toISOString(),
-      inputs: readForm(),
-      uploads: Object.fromEntries(["hero1","hero2","hero3","brandLogo"].map(k => [k, UPLOADS[k] || null])),
-    };
-    INPUT_SETS.push(set);
-    saveInputSets();
-    const el = document.getElementById("saveStatus");
-    el.textContent = `Saved as "${set.name}".`;
-    setTimeout(() => { el.textContent = ""; }, 2500);
-  });
-  document.getElementById("loadSetBtn").addEventListener("click", openInputSetPicker);
-  document.getElementById("useSampleBtn").addEventListener("click", () => {
-    writeForm(SAMPLE);
-    setInputs(SAMPLE);
-    document.getElementById("setPickerModal").classList.remove("open");
+  document.getElementById("modeToggleBtn").addEventListener("click", () => {
+    if (STEP1_MODE === "preset") enterCustomMode();
+    else returnToPresetMode();
   });
 }
 
