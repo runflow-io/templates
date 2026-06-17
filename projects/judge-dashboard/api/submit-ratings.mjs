@@ -63,7 +63,7 @@ export default async function handler(req, res) {
           briefLabel,
           submittedAt,
           costUsd: typeof r.cost === "number" ? r.cost : null,
-          runtimeMs: typeof r.duration_ms === "number" ? r.duration_ms : null,
+          runtimeSeconds: typeof r.duration_ms === "number" ? Math.round(r.duration_ms / 10) / 100 : null,
         });
         created.push(page.id);
       } catch (e) {
@@ -152,7 +152,7 @@ async function createNotionPage(token, databaseId, row) {
   if (row.briefLabel) properties["Brief label"] = { rich_text: [{ text: { content: row.briefLabel } }] };
   if (row.sourceUrl) properties["Source URL"] = { url: row.sourceUrl };
   if (row.costUsd != null) properties["Cost USD"] = { number: row.costUsd };
-  if (row.runtimeMs != null) properties["Runtime ms"] = { number: row.runtimeMs };
+  if (row.runtimeSeconds != null) properties["Runtime s"] = { number: row.runtimeSeconds };
   if (row.fileUploadId) {
     properties["Image"] = {
       files: [{ name: row.tile || "image", type: "file_upload", file_upload: { id: row.fileUploadId } }],

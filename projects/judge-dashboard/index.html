@@ -1380,8 +1380,9 @@
   <div class="modal">
     <h3>Welcome 👋</h3>
     <p>Before you start judging, who are you? We'll tag your ratings so we can collate feedback across the team.</p>
-    <input type="text" id="judgeNameInput" placeholder="Your name (e.g. Thibaut)" autocomplete="name" />
-    <input type="text" id="judgeCompanyInput" placeholder="Company or workspace" autocomplete="organization" />
+    <input type="text" id="judgeNameInput" placeholder="Full name" autocomplete="name" />
+    <input type="text" id="judgeCompanyInput" placeholder="Company name" autocomplete="organization" />
+    <input type="password" id="judgePasswordInput" placeholder="Password" autocomplete="current-password" />
     <div class="modal-actions">
       <button class="btn btn-primary" id="judgeNameSubmit">Start judging</button>
     </div>
@@ -2553,17 +2554,19 @@ function openNameModal() {
   const overlay = document.getElementById("nameModal");
   document.getElementById("judgeNameInput").value = JUDGE_NAME || "";
   document.getElementById("judgeCompanyInput").value = JUDGE_COMPANY || "";
+  document.getElementById("judgePasswordInput").value = "";
   overlay.classList.add("open");
   setTimeout(() => document.getElementById("judgeNameInput").focus(), 50);
 }
 function closeNameModal() {
   document.getElementById("nameModal").classList.remove("open");
 }
-function setJudgeIdentity(name, company) {
+function setJudgeIdentity(name, company, password) {
   JUDGE_NAME = (name || "").trim();
   JUDGE_COMPANY = (company || "").trim();
   const wasAdmin = IS_ADMIN;
-  IS_ADMIN = ADMIN_PASSWORDS.includes(JUDGE_COMPANY);
+  // Password is never persisted; only the resulting IS_ADMIN flag is.
+  IS_ADMIN = ADMIN_PASSWORDS.includes((password || "").trim());
   saveJudgeName(); saveJudgeCompany(); saveAdmin();
   renderJudgeTag();
   // Re-render everything if admin status changed (visibility of inputs etc.)
@@ -3085,11 +3088,12 @@ function attachModalEvents() {
   document.getElementById("judgeNameSubmit").addEventListener("click", () => {
     const name = document.getElementById("judgeNameInput").value.trim();
     const company = document.getElementById("judgeCompanyInput").value.trim();
+    const password = document.getElementById("judgePasswordInput").value.trim();
     if (!name) { document.getElementById("judgeNameInput").focus(); return; }
-    setJudgeIdentity(name, company);
+    setJudgeIdentity(name, company, password);
     closeNameModal();
   });
-  ["judgeNameInput", "judgeCompanyInput"].forEach(id => {
+  ["judgeNameInput", "judgeCompanyInput", "judgePasswordInput"].forEach(id => {
     document.getElementById(id).addEventListener("keydown", (e) => {
       if (e.key === "Enter") document.getElementById("judgeNameSubmit").click();
     });
