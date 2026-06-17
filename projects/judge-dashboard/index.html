@@ -145,7 +145,8 @@
     border-top: 1px solid var(--border);
   }
   .form-row > div { min-width: 0; }
-  .form-section + .form-section { margin-top: 22px; padding-top: 22px; border-top: 1px solid var(--border); }
+  .form-section + .form-section { margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--border); }
+  .form-row + .form-section { margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--border); }
   .form-section h4.section-h {
     margin: 0 0 12px 0;
     font-family: 'Space Mono', monospace;
@@ -1387,10 +1388,11 @@
 <div class="modal-overlay" id="nameModal">
   <div class="modal">
     <h3>Welcome 👋</h3>
-    <p>Before you start judging, who are you? We'll tag your ratings so we can collate feedback across the team.</p>
+    <p>This is the Runflow judge dashboard. Drop your name and the access password we shared with you to start.</p>
     <input type="text" id="judgeNameInput" placeholder="Full name" autocomplete="name" />
     <input type="text" id="judgeCompanyInput" placeholder="Company name" autocomplete="organization" />
     <input type="password" id="judgePasswordInput" placeholder="Password" autocomplete="current-password" />
+    <div id="judgeNameError" style="color: var(--error); font-size: 12px; margin-top: 8px; display: none;"></div>
     <div class="modal-actions">
       <button class="btn btn-primary" id="judgeNameSubmit">Start judging</button>
     </div>
@@ -1646,10 +1648,14 @@ const SAMPLE = {
   formats: ["1:1", "9:16"]
 };
 
-/* Presets the judge can pick from at Step 1. Each preset can carry hero
-   images (asset_id-based URIs uploaded ahead of time) + brand kit + angles.
-   Filling in heroes requires runflow://assets/{id} URIs from Runflow's
-   asset storage — see api/upload-create.mjs. */
+/* Presets the judge can pick from at Step 1. Each preset carries:
+   - brand kit (colours, font, tone) + 2 angles + formats (data)
+   - hero + logo URLs that point to static files shipped in dist/presets/
+     (so they survive Runflow's 24h CDN cache)
+   - pre-rendered workflow runs (runs) so judges can rate immediately,
+     no Generate click needed. Filled in by tools/build-presets.py after the
+     static assets are deployed. */
+const PRESET_ASSET_BASE = "https://templates.runflow.io/judge-dashboard/presets";
 const PRESETS = [
   {
     id: "chanel",
@@ -1664,7 +1670,58 @@ const PRESETS = [
         { label: "Indie founder", headline: "Ship the ad today", subhead: "From one hero to a full set", cta: "Try Runflow" }
       ],
       formats: ["1:1", "9:16"]
-    }
+    },
+    uploads: {
+      hero1: { preview_url: `${PRESET_ASSET_BASE}/chanel/hero1.webp`, runflow_uri: `${PRESET_ASSET_BASE}/chanel/hero1.webp`, filename: "hero1.webp" },
+      hero2: { preview_url: `${PRESET_ASSET_BASE}/chanel/hero2.webp`, runflow_uri: `${PRESET_ASSET_BASE}/chanel/hero2.webp`, filename: "hero2.webp" },
+      hero3: { preview_url: `${PRESET_ASSET_BASE}/chanel/hero3.jpg`,  runflow_uri: `${PRESET_ASSET_BASE}/chanel/hero3.jpg`,  filename: "hero3.jpg"  },
+      brandLogo: { preview_url: `${PRESET_ASSET_BASE}/chanel/logo.png`, runflow_uri: `${PRESET_ASSET_BASE}/chanel/logo.png`, filename: "logo.png" }
+    },
+    runs: []
+  },
+  {
+    id: "runflow",
+    name: "Runflow · Studio",
+    data: {
+      brandColor1: "#09090B",
+      brandColor2: "#FBBF24",
+      brandFont: "Bricolage Grotesque",
+      brandTone: "minimal",
+      cuts: [
+        { label: "Performance marketer", headline: "Variants overnight, on-brand", subhead: "Cut creative-refresh costs by 4x", cta: "Get started" },
+        { label: "Indie founder", headline: "Ship the ad today", subhead: "From one hero to a full set", cta: "Try Runflow" }
+      ],
+      formats: ["16:9", "4:5"]
+    },
+    uploads: {
+      hero1: { preview_url: `${PRESET_ASSET_BASE}/runflow/hero1.jpg`,  runflow_uri: `${PRESET_ASSET_BASE}/runflow/hero1.jpg`,  filename: "hero1.jpg"  },
+      hero2: { preview_url: `${PRESET_ASSET_BASE}/runflow/hero2.avif`, runflow_uri: `${PRESET_ASSET_BASE}/runflow/hero2.avif`, filename: "hero2.avif" },
+      hero3: { preview_url: `${PRESET_ASSET_BASE}/runflow/hero3.jpg`,  runflow_uri: `${PRESET_ASSET_BASE}/runflow/hero3.jpg`,  filename: "hero3.jpg"  },
+      brandLogo: { preview_url: `${PRESET_ASSET_BASE}/runflow/logo.png`, runflow_uri: `${PRESET_ASSET_BASE}/runflow/logo.png`, filename: "logo.png" }
+    },
+    runs: []
+  },
+  {
+    id: "ikea",
+    name: "Ikea · Home",
+    data: {
+      brandColor1: "#0058A3",
+      brandColor2: "#FFDB00",
+      brandFont: "Noto Sans",
+      brandTone: "playful",
+      cuts: [
+        { label: "Performance marketer", headline: "Variants overnight, on-brand", subhead: "Cut creative-refresh costs by 4x", cta: "Get started" },
+        { label: "Indie founder", headline: "Ship the ad today", subhead: "From one hero to a full set", cta: "Try Runflow" }
+      ],
+      formats: ["9:16", "16:9"]
+    },
+    uploads: {
+      hero1: { preview_url: `${PRESET_ASSET_BASE}/ikea/hero1.avif`,  runflow_uri: `${PRESET_ASSET_BASE}/ikea/hero1.avif`,  filename: "hero1.avif"  },
+      hero2: { preview_url: `${PRESET_ASSET_BASE}/ikea/hero2.webp`,  runflow_uri: `${PRESET_ASSET_BASE}/ikea/hero2.webp`,  filename: "hero2.webp"  },
+      hero3: { preview_url: `${PRESET_ASSET_BASE}/ikea/hero3.jpeg`,  runflow_uri: `${PRESET_ASSET_BASE}/ikea/hero3.jpeg`,  filename: "hero3.jpeg" },
+      brandLogo: { preview_url: `${PRESET_ASSET_BASE}/ikea/logo.jpg`, runflow_uri: `${PRESET_ASSET_BASE}/ikea/logo.jpg`, filename: "logo.jpg" }
+    },
+    runs: []
   }
 ];
 
@@ -1681,7 +1738,10 @@ let JUDGE_COMPANY = localStorage.getItem("runflow_judge_company_v1") || "";
 // Everyone has access to the input form, generation, and rating regardless.
 let IS_ADMIN = localStorage.getItem("runflow_is_admin_v1") === "true";
 
-const ADMIN_PASSWORDS = ["Runflow.io/team", "ContestJudges2026"];
+// Any of these unlocks the dashboard. Only "Runflow.io/team" unlocks
+// admin features (cost visibility, tile delete/recover, raw output).
+const VALID_PASSWORDS = ["Runflow.io/team", "RunflowJudges2026"];
+const ADMIN_PASSWORDS = ["Runflow.io/team"];
 
 function saveU() { localStorage.setItem("runflow_uploads_c01_v2", JSON.stringify(UPLOADS)); }
 function saveBatches() { localStorage.setItem("runflow_batches_v1", JSON.stringify(BATCHES)); }
@@ -1828,10 +1888,55 @@ function applyPreset(presetId) {
   if (!p) return;
   ACTIVE_PRESET_ID = presetId;
   localStorage.setItem("runflow_active_preset_v1", presetId);
+  // Form values
   writeForm(p.data);
   setInputs(p.data);
+  // Heroes + logo — overlay the preset's uploads onto the slots so the
+  // workflow has runflow_uris and the preview shows the preset thumbnail.
+  if (p.uploads) {
+    for (const slot of ["hero1", "hero2", "hero3", "brandLogo"]) {
+      if (p.uploads[slot]) UPLOADS[slot] = { ...p.uploads[slot] };
+      else delete UPLOADS[slot];
+      const el = document.getElementById(slot);
+      if (el) el.value = p.uploads[slot]?.runflow_uri || "";
+      renderUploadPreview(slot);
+    }
+    saveU();
+  }
+  // Pre-rendered batch: create or refresh a deterministic "preset-<id>" batch
+  // so the judge can rate the pre-rendered images without firing Generate.
+  if (Array.isArray(p.runs) && p.runs.length) {
+    const batchId = `preset-${p.id}`;
+    let existing = BATCHES.find(b => b.id === batchId);
+    const results = p.runs.map((r, idx) => ({
+      id: `${batchId}-${idx}`,
+      hero_idx: r.hero_idx, cut_idx: r.cut_idx, format: r.format,
+      image: r.local_image || r.image || null,
+      status: r.image || r.local_image ? "succeeded" : "failed",
+      cost: r.cost ?? null,
+      duration_ms: r.duration_ms ?? null,
+    }));
+    const payload = {
+      id: batchId,
+      name: `${p.name} · pre-rendered`,
+      created_at: new Date().toISOString(),
+      preset_id: p.id,
+      results,
+      likes: existing?.likes || {},
+      feedback: existing?.feedback || {},
+      gen_state: { status: "succeeded", total: results.length, done: results.filter(r => r.status === "succeeded").length, error: null },
+    };
+    if (existing) {
+      Object.assign(existing, { results, name: payload.name, preset_id: p.id, gen_state: payload.gen_state });
+    } else {
+      BATCHES.push(payload);
+    }
+    CURRENT_BATCH_ID = batchId;
+    saveBatches(); saveCurrentBatch();
+  }
   renderCuts();
   renderPresetChips();
+  renderAll();
 }
 function renderPresetChips() {
   const wrap = document.getElementById("presetChips");
@@ -2631,6 +2736,10 @@ function setJudgeIdentity(name, company, password) {
   JUDGE_COMPANY = (company || "").trim();
   // Password gates cost visibility + admin tile actions, not the input form.
   IS_ADMIN = ADMIN_PASSWORDS.includes((password || "").trim());
+  // Persist on a flag so we can keep the modal closed for returning users.
+  if (VALID_PASSWORDS.includes((password || "").trim())) {
+    localStorage.setItem("runflow_unlocked_v1", "true");
+  }
   saveJudgeName(); saveJudgeCompany(); saveAdmin();
   renderJudgeTag();
   applyAdminGating();
@@ -3078,14 +3187,21 @@ async function boot() {
     } catch (_) { /* leave it alone */ }
   }
   const reloaded = localStorage.getItem("runflow_inputs_c01_v2");
-  writeForm(reloaded ? JSON.parse(reloaded) : SAMPLE);
+  writeForm(reloaded ? JSON.parse(reloaded) : (PRESETS[0]?.data || SAMPLE));
   attachFormEvents();
   ["hero1","hero2","hero3","brandLogo"].forEach(renderUploadPreview);
   renderJudgeTag();
+  // Seed preset state: in preset mode, drop the active preset's batch into
+  // BATCHES so the Results section is populated on first load.
+  if (STEP1_MODE === "preset" && ACTIVE_PRESET_ID) {
+    const seedPreset = PRESETS.find(p => p.id === ACTIVE_PRESET_ID) || PRESETS[0];
+    if (seedPreset) applyPreset(seedPreset.id);
+  }
   renderAll();
   attachModalEvents();
-  // Show the name modal on first load if we don't know the judge yet
-  if (!JUDGE_NAME) openNameModal();
+  // Block access until the judge has entered their name + password.
+  const unlocked = localStorage.getItem("runflow_unlocked_v1") === "true";
+  if (!JUDGE_NAME || !unlocked) openNameModal();
 }
 
 function attachModalEvents() {
@@ -3094,7 +3210,16 @@ function attachModalEvents() {
     const name = document.getElementById("judgeNameInput").value.trim();
     const company = document.getElementById("judgeCompanyInput").value.trim();
     const password = document.getElementById("judgePasswordInput").value.trim();
-    if (!name) { document.getElementById("judgeNameInput").focus(); return; }
+    const errEl = document.getElementById("judgeNameError");
+    const showErr = (msg, focusId) => {
+      errEl.textContent = msg; errEl.style.display = "";
+      if (focusId) document.getElementById(focusId).focus();
+    };
+    if (!name) return showErr("Enter your full name.", "judgeNameInput");
+    if (!company) return showErr("Enter your company name.", "judgeCompanyInput");
+    if (!password) return showErr("The password is required to access the dashboard.", "judgePasswordInput");
+    if (!VALID_PASSWORDS.includes(password)) return showErr("That password isn't recognised. Check the invite email.", "judgePasswordInput");
+    errEl.style.display = "none";
     setJudgeIdentity(name, company, password);
     closeNameModal();
   });
