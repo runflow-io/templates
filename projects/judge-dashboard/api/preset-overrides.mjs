@@ -71,6 +71,19 @@ export default async function handler(req, res) {
     if (!authedAsAdmin(req)) return sendJson(res, 401, { message: "admin password required" });
     let body;
     try { body = await readJson(req); } catch { return sendJson(res, 400, { message: "invalid JSON" }); }
+    // "set" overwrites the full list atomically — useful when multiple ids
+    // need to be added/removed at once, since the read-modify-write loop
+    // doesn't survive concurrent calls on eventually-consistent storage.
+    if (body.action === "set") {
+      const hidden = Array.isArray(body.hidden) ? body.hidden.map(s => String(s).trim()).filter(Boolean) : [];
+      try {
+        const next = { hidden: Array.from(new Set(hidden)).sort(), updated_at: new Date().toISOString() };
+        await writeOverrides(next);
+        return sendJson(res, 200, next);
+      } catch (e) {
+        return sendJson(res, 502, { message: String(e?.message || e) });
+      }
+    }
     const tileId = (body.tile_id || "").trim();
     const action = body.action === "unhide" ? "unhide" : "hide";
     if (!tileId) return sendJson(res, 400, { message: "tile_id required" });
