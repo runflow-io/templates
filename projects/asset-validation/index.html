@@ -1,0 +1,3194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Asset validation · Runflow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F5F4;
+    --card: #FFFFFF;
+    --elevated: #F4F4F5;
+    --border: #E4E4E7;
+    --border-hover: #D4D4D8;
+    --ink: #09090B;
+    --text: #09090B;
+    --text-2: #3F3F46;
+    --muted: #71717A;
+    --faint: #A1A1AA;
+    --amber: #FBBF24;
+    --amber-text: #B45309;
+    --amber-deep: #92400E;
+    --amber-soft: rgba(251,191,36,0.12);
+    --amber-border: rgba(251,191,36,0.35);
+    --success: #22C55E;
+    --success-bg: rgba(34,197,94,0.08);
+    --success-border: rgba(34,197,94,0.25);
+    --error: #DC2626;
+    --error-bg: rgba(220,38,38,0.06);
+    --error-border: rgba(220,38,38,0.25);
+    --warn: #FB923C;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.04), 0 2px 12px rgba(0,0,0,0.07);
+    --shadow-lg: 0 10px 15px rgba(0,0,0,0.04), 0 4px 24px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+  .mono { font-family: 'Space Mono', ui-monospace, Menlo, monospace; }
+
+  /* Header */
+  header {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0;
+    z-index: 10;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .bar-mark {
+    width: 36px; height: 14px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #09090B 0%, #FBBF24 100%);
+  }
+  .wordmark {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .wordmark .flow { color: #D97706; }
+  .crumb {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    padding-left: 14px;
+    border-left: 1px solid var(--border);
+    margin-left: 6px;
+  }
+  .header-meta { color: var(--muted); font-size: 13px; text-align: right; }
+  .header-meta .pill {
+    display: inline-block;
+    background: var(--amber-soft);
+    color: var(--amber-text);
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-left: 8px;
+  }
+
+  main { max-width: 1240px; margin: 0 auto; padding: 32px 32px 96px; }
+
+  /* Section */
+  section { margin-bottom: 36px; }
+  .eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--amber-text);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 24px;
+    letter-spacing: -0.02em;
+    margin: 0 0 16px 0;
+    color: var(--ink);
+  }
+  .section-sub {
+    color: var(--text-2);
+    font-size: 14px;
+    margin: -8px 0 18px 0;
+    max-width: 720px;
+  }
+
+  /* Card */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+
+  /* Input form — heroes span full width up top, brand kit + cuts share row below */
+  .form-stack { padding: 24px 26px; }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    padding-top: 20px;
+    margin-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+  .form-row > div { min-width: 0; }
+  .form-section + .form-section { margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--border); }
+  .form-row + .form-section { margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--border); }
+  .form-section h4.section-h {
+    margin: 0 0 12px 0;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    font-weight: 700;
+  }
+  .form-section h4.section-h .meta { color: var(--faint); font-weight: 400; font-size: 10px; margin-left: 6px; }
+
+  /* Step heading: 24px Outfit, same weight as section-title */
+  .step-label {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 24px;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin: 0 0 14px 0;
+  }
+
+  .field { margin-bottom: 14px; }
+  .field-label {
+    display: block;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .field-hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  input[type="text"], input[type="url"], select, textarea {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-family: 'Outfit', sans-serif;
+    color: var(--ink);
+    transition: border-color 0.15s ease;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--amber);
+    box-shadow: 0 0 0 3px var(--amber-soft);
+  }
+  input.mono, textarea.mono { font-family: 'Space Mono', monospace; font-size: 13px; }
+  textarea { resize: vertical; min-height: 60px; line-height: 1.5; }
+
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .row-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .hero-dropzone {
+    aspect-ratio: 1 / 1;
+    border: 1.5px dashed var(--border-hover);
+    background: var(--card);
+    border-radius: 10px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.15s ease;
+  }
+  .hero-dropzone:hover { border-color: var(--amber); background: rgba(251,191,36,0.04); }
+  .hero-dropzone.dragging { border-color: var(--amber); border-style: solid; background: var(--amber-soft); }
+  .hero-dropzone.filled { border-style: solid; border-color: var(--border); padding: 0; }
+  .hero-dropzone.uploading { border-color: var(--amber); }
+  .logo-dropzone { aspect-ratio: 1 / 1; width: 100%; }
+  .brand-kit-grid {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 18px;
+    align-items: start;
+  }
+  .brand-kit-grid .brand-logo-col { min-width: 0; }
+  .brand-kit-grid .brand-fields-col { min-width: 0; }
+
+  .hero-empty {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    padding: 12px;
+    text-align: center;
+  }
+  .hero-dropzone.filled .hero-empty { display: none; }
+  .hero-dropzone:not(.filled) .hero-filled { display: none; }
+  .hero-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .hero-empty-text { font-size: 13px; color: var(--text-2); font-weight: 500; }
+  .hero-empty-sub { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: 'Space Mono', monospace; }
+
+  .hero-filled {
+    position: absolute; inset: 0;
+    background: var(--elevated);
+  }
+  .hero-filled img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .logo-dropzone .hero-filled img { object-fit: contain; padding: 14px; background: #fff; }
+  .hero-filled .overlay {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    padding: 8px 10px;
+    background: linear-gradient(to top, rgba(9,9,11,0.85), rgba(9,9,11,0));
+    color: #fff;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .hero-filled .overlay .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  .hero-filled .clear-btn {
+    background: rgba(9,9,11,0.6);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 2px 8px;
+    cursor: pointer;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .hero-filled .clear-btn:hover { background: var(--error); }
+  .hero-spinner-overlay {
+    position: absolute; inset: 0;
+    background: rgba(255,255,255,0.85);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* schema panel */
+  .schema-panel {
+    margin-top: 10px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .schema-panel h5 {
+    margin: 0 0 8px 0;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .schema-panel h5 .verdict { font-family: 'Outfit', sans-serif; text-transform: none; letter-spacing: 0; font-size: 12px; color: var(--text-2); }
+  .schema-list { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; font-family: 'Space Mono', monospace; font-size: 11px; }
+  .schema-list .field-name { color: var(--text); }
+  .schema-list .field-name.accepted { color: #15803D; }
+  .schema-list .field-name.missing { color: #B45309; }
+  .schema-list .field-name.rejected { color: var(--muted); text-decoration: line-through; }
+  .schema-banner-ok { background: var(--success-bg); border: 1px solid var(--success-border); color: #15803D; padding: 8px 12px; border-radius: 6px; font-size: 13px; margin-bottom: 8px; }
+  .schema-banner-warn { background: rgba(251,146,60,0.10); border: 1px solid rgba(251,146,60,0.3); color: #9A3412; padding: 8px 12px; border-radius: 6px; font-size: 13px; margin-bottom: 8px; }
+  .schema-banner-fail { background: var(--error-bg); border: 1px solid var(--error-border); color: #991B1B; padding: 8px 12px; border-radius: 6px; font-size: 13px; margin-bottom: 8px; }
+
+  .color-row { display: grid; grid-template-columns: 40px 1fr; gap: 8px; align-items: center; }
+  .color-swatch {
+    width: 38px; height: 38px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  /* Cut card — collapsible pill */
+  .cut-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    transition: border-radius 0.15s ease, border-color 0.15s ease;
+  }
+  .cut-card[open] {
+    border-radius: 12px;
+    border-color: var(--border-hover);
+  }
+  .cut-card summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    user-select: none;
+  }
+  .cut-card summary::-webkit-details-marker { display: none; }
+  .cut-card summary::marker { content: ''; }
+  .cut-card[open] summary { border-bottom: 1px solid var(--border); }
+  .cut-card .cut-pill-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .cut-card .cut-pill-preview {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .cut-card .cut-pill-preview .empty { color: var(--faint); font-style: italic; }
+  .cut-card .badge-mini {
+    background: var(--amber-soft);
+    color: var(--amber-text);
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .cut-card .chevron {
+    width: 14px; height: 14px;
+    color: var(--muted);
+    transition: transform 0.15s ease;
+    flex-shrink: 0;
+  }
+  .cut-card[open] .chevron { transform: rotate(180deg); }
+  .cut-card .cut-body { padding: 12px 16px 14px; }
+
+  /* Chips */
+  .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.12s ease;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+  }
+  .chip:hover { border-color: var(--border-hover); }
+  .chip.active {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    padding: 9px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: 'Outfit', sans-serif;
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+  .btn:hover { border-color: var(--border-hover); }
+  .btn-primary {
+    background: var(--amber);
+    border-color: var(--amber);
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .btn-primary:hover { background: #F5B500; border-color: #F5B500; }
+  .btn-primary:disabled { background: var(--faint); border-color: var(--faint); color: #fff; cursor: not-allowed; }
+  .btn-ghost { background: transparent; border-color: var(--border); color: var(--text); }
+  .btn-sm { padding: 6px 10px; font-size: 12px; }
+  .btn-amber-outline {
+    border: 1px solid var(--amber);
+    color: var(--amber-text);
+    background: var(--amber-soft);
+    font-weight: 600;
+  }
+  .btn-amber-outline:hover { background: rgba(251,191,36,0.2); }
+
+  /* Submission card */
+  .submission {
+    margin-bottom: 18px;
+  }
+  .submission-head {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: start;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+  }
+  .submission-head h3 {
+    margin: 0;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: -0.01em;
+  }
+  .submission-head h3 .by {
+    color: var(--amber-text);
+    font-weight: 600;
+  }
+  .submission-meta {
+    margin-top: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    color: var(--muted);
+    font-size: 12px;
+    font-family: 'Space Mono', monospace;
+  }
+  .submission-meta a { color: var(--muted); text-decoration: none; border-bottom: 1px dotted var(--faint); }
+  .submission-meta a:hover { color: var(--amber-text); border-color: var(--amber); }
+  .endpoint {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--amber-deep);
+    background: var(--amber-soft);
+    padding: 4px 10px;
+    border-radius: 6px;
+    margin-top: 6px;
+    word-break: break-all;
+  }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .tag {
+    background: var(--elevated);
+    color: var(--text-2);
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 3px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+  }
+  .tag.warn { background: rgba(251,146,60,0.10); color: #C2410C; border-color: rgba(251,146,60,0.3); }
+  .tag.good { background: var(--success-bg); color: #15803D; border-color: var(--success-border); }
+  .tag.amber { background: var(--amber-soft); color: var(--amber-text); border-color: var(--amber-border); }
+
+  .submission-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    align-items: stretch;
+  }
+  .submission-col {
+    padding: 20px 22px;
+    min-width: 0;
+  }
+  .submission-col + .submission-col { border-left: 1px solid var(--border); background: var(--elevated); }
+
+  .field-block { margin-bottom: 16px; }
+  .field-block h4 {
+    margin: 0 0 6px 0;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    font-weight: 700;
+  }
+  .field-block p {
+    margin: 0;
+    font-size: 13.5px;
+    color: var(--text-2);
+    white-space: pre-wrap;
+  }
+
+  /* Run button + output gallery */
+  .run-controls {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 14px;
+    padding: 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    min-width: 84px;
+  }
+  .stat .label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+  .stat .value {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+  .stat .value.placeholder { color: var(--faint); font-weight: 400; font-size: 14px; }
+
+  .status-pill {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin-left: 6px;
+  }
+  .status-running { background: var(--amber-soft); color: var(--amber-text); }
+  .status-succeeded { background: var(--success-bg); color: #15803D; }
+  .status-failed { background: var(--error-bg); color: #B91C1C; }
+  .status-stopped { background: var(--elevated); color: var(--muted); }
+
+  .btn-stop {
+    background: var(--error);
+    border-color: var(--error);
+    color: #fff;
+    font-weight: 600;
+  }
+  .btn-stop:hover { background: #B91C1C; border-color: #B91C1C; }
+
+  .output-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .output-tile {
+    aspect-ratio: 1;
+    background: var(--elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    cursor: zoom-in;
+  }
+  .output-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .output-tile .caption {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 4px 6px;
+    background: rgba(9,9,11,0.7);
+    color: #fff;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .output-empty {
+    padding: 20px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    background: var(--card);
+  }
+  .output-error {
+    padding: 14px;
+    font-size: 13px;
+    background: var(--error-bg);
+    border: 1px solid var(--error-border);
+    border-radius: 8px;
+    color: #991B1B;
+    font-family: 'Space Mono', monospace;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* AI eval panel */
+  .ai-panel {
+    margin-top: 12px;
+    border: 1px solid var(--amber-border);
+    background: linear-gradient(180deg, rgba(251,191,36,0.05), rgba(251,191,36,0.02));
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .ai-panel h4 {
+    margin: 0 0 6px 0;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--amber-text);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .ai-panel .verdict { font-size: 13.5px; color: var(--ink); margin: 4px 0 8px 0; }
+  .ai-panel .lists { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px; }
+  .ai-panel .lists h6 {
+    margin: 0 0 4px 0;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    font-weight: 700;
+  }
+  .ai-panel .lists ul { margin: 0; padding-left: 16px; color: var(--text-2); }
+  .ai-panel .lists li { margin-bottom: 3px; }
+  .score-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .score-cell {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 8px;
+    text-align: center;
+  }
+  .score-cell .label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    line-height: 1.1;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .score-cell .value {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    color: var(--amber-deep);
+  }
+
+  /* Judge scoring */
+  .judge-block {
+    margin-top: 14px;
+    padding: 14px 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .rubric-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 16px;
+    margin-top: 4px;
+  }
+  .rubric-row {
+    display: grid;
+    grid-template-columns: 1fr 70px;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-2);
+  }
+  .rubric-row select {
+    padding: 5px 8px;
+    font-size: 13px;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+  }
+
+  .vote-row { display: flex; gap: 8px; margin-top: 12px; }
+  .vote-btn {
+    flex: 1;
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text);
+  }
+  .vote-btn:hover { border-color: var(--border-hover); }
+  .vote-btn.active.first { background: var(--amber); border-color: var(--amber); color: var(--ink); }
+  .vote-btn.active.second { background: #D4D4D8; border-color: #D4D4D8; color: var(--ink); }
+  .vote-btn.active.third { background: #B45309; border-color: #B45309; color: #fff; }
+  .vote-btn.active.reject { background: #DC2626; border-color: #DC2626; color: #fff; }
+
+  details summary {
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 8px;
+    font-family: 'Space Mono', monospace;
+    user-select: none;
+  }
+  details[open] summary { color: var(--amber-text); }
+
+  /* Builder input collapse — looks like a button when closed */
+  .builder-input-collapse {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 14px;
+    background: var(--card);
+    overflow: hidden;
+  }
+  .builder-input-collapse summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Outfit', sans-serif;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0;
+    user-select: none;
+  }
+  .builder-input-collapse summary::-webkit-details-marker { display: none; }
+  .builder-input-collapse summary::marker { content: ''; }
+  .builder-input-collapse summary:hover { background: var(--elevated); }
+  .builder-input-collapse summary .label { flex: 0 0 auto; }
+  .builder-input-collapse summary .meta {
+    flex: 1;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 400;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .builder-input-collapse summary .chevron {
+    width: 14px; height: 14px;
+    color: var(--muted);
+    transition: transform 0.15s ease;
+    flex-shrink: 0;
+  }
+  .builder-input-collapse[open] summary { border-bottom: 1px solid var(--border); background: var(--elevated); color: var(--amber-text); }
+  .builder-input-collapse[open] summary .chevron { transform: rotate(180deg); color: var(--amber-text); }
+  .builder-input-collapse .content { padding: 14px 16px; }
+
+  /* Per-call cost + runtime header */
+  .call-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .call-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    font-weight: 700;
+  }
+  .call-meta { display: flex; gap: 6px; }
+  .call-meta-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  .call-meta-pill strong {
+    color: var(--ink);
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  /* Per-tile download button */
+  .tile-download {
+    position: absolute;
+    top: 6px; right: 6px;
+    background: rgba(9,9,11,0.7);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 6px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .output-tile:hover .tile-download { opacity: 1; }
+  .tile-download:hover { background: var(--amber); color: var(--ink); }
+
+  /* Per-image AI score chip (top-left) */
+  .tile-ai-score {
+    position: absolute;
+    top: 6px; left: 6px;
+    background: rgba(146,64,14,0.88);
+    color: #fff;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    pointer-events: none;
+  }
+  .tile-ai-score .label { opacity: 0.7; text-transform: uppercase; font-size: 9px; }
+  pre {
+    background: var(--elevated);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11.5px;
+    color: var(--text-2);
+    overflow-x: auto;
+    margin: 8px 0 0 0;
+    line-height: 1.5;
+  }
+
+  /* Sticky bottom action bar */
+  .bottom-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 32px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+  .totals-line {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .totals-line strong { color: var(--amber-deep); font-weight: 700; }
+
+  /* Non-admin read-only mode — judges see the brief but can't edit it */
+  .read-only .hero-dropzone { cursor: default; pointer-events: none; opacity: 0.95; }
+  .read-only .hero-dropzone .hero-filled { cursor: default; }
+  .read-only .hero-dropzone:hover { border-color: var(--border); background: var(--card); }
+  .read-only .chip { cursor: default; pointer-events: none; }
+  .read-only #formatChips { pointer-events: none; }
+  .read-only .cut-card summary { cursor: pointer; } /* still allow toggling expand */
+  .read-only input[readonly], .read-only textarea[readonly] {
+    background: var(--elevated);
+    cursor: default;
+  }
+  .read-only input[readonly]:focus, .read-only textarea[readonly]:focus,
+  .read-only select:focus {
+    box-shadow: none;
+    border-color: var(--border);
+  }
+  .read-only select:disabled { background: var(--elevated); cursor: default; opacity: 1; color: var(--text); }
+  .read-only .color-swatch { cursor: default; }
+
+  /* Batch pills (run history) */
+  .batch-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .batch-pills:empty { margin: 0; }
+  .batch-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+  .batch-pill:hover { border-color: var(--border-hover); }
+  .batch-pill.active {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+  .batch-pill .batch-pill-name { font-weight: 600; }
+  .batch-pill .batch-pill-stats {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+  .batch-pill.active .batch-pill-stats { color: rgba(255,255,255,0.6); }
+  .batch-pill .batch-pill-del {
+    color: var(--faint);
+    font-size: 16px;
+    line-height: 1;
+    padding: 0 0 0 4px;
+    border-left: 1px solid var(--border);
+  }
+  .batch-pill.active .batch-pill-del { color: rgba(255,255,255,0.5); border-left-color: rgba(255,255,255,0.2); }
+  .batch-pill .batch-pill-del:hover { color: var(--error); }
+  .batch-pill.active .batch-pill-del:hover { color: #fca5a5; }
+
+  /* Saved input set picker rows */
+  .set-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    background: var(--card);
+    transition: border-color 0.12s ease;
+  }
+  .set-row:hover { border-color: var(--border-hover); }
+
+  /* Admin delete on tile */
+  .result-tile .tile-del {
+    position: absolute;
+    top: 8px; left: 8px;
+    background: rgba(9,9,11,0.75);
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    width: 24px; height: 24px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    opacity: 0;
+    transition: opacity 0.12s ease, background 0.12s ease;
+  }
+  .result-tile:hover .tile-del { opacity: 1; }
+  .result-tile .tile-del:hover { background: var(--error); }
+
+  /* Results gallery */
+  .results-controls {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 18px;
+    align-items: center;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+  }
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .result-tile {
+    aspect-ratio: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    cursor: zoom-in;
+    transition: border-color 0.12s ease, box-shadow 0.12s ease;
+  }
+  .result-tile:hover { border-color: var(--border-hover); box-shadow: var(--shadow-md); }
+  .result-tile.rated-like { border-color: var(--success); }
+  .result-tile.rated-dislike { border-color: var(--error); }
+  .result-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .result-tile .tile-meta {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 6px 10px;
+    background: linear-gradient(to top, rgba(9,9,11,0.85), rgba(9,9,11,0));
+    color: #fff;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .result-tile .tile-rate {
+    position: absolute; top: 8px; right: 8px;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+  }
+  .result-tile:hover .tile-rate, .result-tile.rated-like .tile-rate, .result-tile.rated-dislike .tile-rate { opacity: 1; }
+  .tile-rate button {
+    background: rgba(9,9,11,0.75);
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    width: 28px; height: 28px;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+  .tile-rate button.active.like { background: var(--success); }
+  .tile-rate button.active.dislike { background: var(--error); }
+  .tile-rate button:hover { background: var(--ink); }
+  .tile-pending {
+    aspect-ratio: 1;
+    background: var(--card);
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 8px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+  }
+  .tile-failed {
+    position: relative;
+    aspect-ratio: 1;
+    background: var(--error-bg);
+    border: 1px solid var(--error-border);
+    border-radius: 10px;
+    padding: 12px;
+    color: #991B1B;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    overflow: hidden;
+  }
+  .tile-failed .tile-del {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: rgba(9,9,11,0.75);
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    width: 24px; height: 24px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0;
+    opacity: 0.55;
+    transition: opacity 0.12s ease, background 0.12s ease;
+  }
+  .tile-failed:hover .tile-del { opacity: 1; }
+  .tile-failed .tile-del:hover { background: var(--error); }
+  .tile-failed .tile-recover {
+    position: absolute;
+    bottom: 8px; right: 8px;
+    background: var(--ink);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    transition: background 0.12s ease;
+  }
+  .tile-failed .tile-recover:hover { background: var(--accent, #f59e0b); color: var(--ink); }
+  .tile-failed .tile-recover:disabled { opacity: 0.5; cursor: progress; }
+  .tile-failed .tile-raw {
+    margin-top: 8px;
+    font-size: 10px;
+    color: #4b5563;
+    max-width: 100%;
+  }
+  .tile-failed .tile-raw summary { cursor: pointer; color: var(--ink); }
+  .tile-failed .tile-raw pre {
+    background: rgba(0,0,0,0.04);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px;
+    margin: 6px 0 0 0;
+    max-height: 140px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: #1f2937;
+  }
+  .grid-empty {
+    padding: 40px;
+    text-align: center;
+    color: var(--muted);
+    background: var(--card);
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    margin-bottom: 24px;
+  }
+
+  .btn-stop { background: var(--error); border-color: var(--error); color: #fff; font-weight: 600; }
+  .btn-stop:hover { background: #B91C1C; border-color: #B91C1C; }
+
+  /* Fullscreen lightbox with navigation + rating */
+  .lightbox-v2 {
+    position: fixed; inset: 0;
+    background: rgba(9,9,11,0.95);
+    display: none;
+    z-index: 100;
+    padding: 0;
+  }
+  .lightbox-v2.open { display: flex; align-items: center; justify-content: center; }
+  .lightbox-v2 .lb-stage {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 100px 100px;
+    max-height: 100vh;
+    cursor: zoom-out;
+  }
+  .lightbox-v2 .lb-stage img {
+    max-width: 100%;
+    max-height: calc(100vh - 200px);
+    object-fit: contain;
+    border-radius: 8px;
+  }
+  .lightbox-v2 .lb-caption {
+    margin-top: 16px;
+    color: #fff;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-align: center;
+    max-width: 700px;
+  }
+  .lightbox-v2 .lb-caption strong { color: var(--amber); }
+  .lightbox-v2 .lb-close,
+  .lightbox-v2 .lb-nav {
+    position: fixed;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background 0.12s ease;
+  }
+  .lightbox-v2 .lb-close:hover, .lightbox-v2 .lb-nav:hover { background: rgba(255,255,255,0.2); }
+  .lightbox-v2 .lb-close { top: 24px; right: 24px; width: 40px; height: 40px; }
+  .lightbox-v2 .lb-nav { top: 50%; transform: translateY(-50%); width: 48px; height: 48px; }
+  .lightbox-v2 .lb-prev { left: 24px; }
+  .lightbox-v2 .lb-next { right: 24px; }
+  .lightbox-v2 .lb-actions {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+  }
+  .lightbox-v2 .lb-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    border-radius: 999px;
+    padding: 10px 24px;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    transition: background 0.12s ease, border-color 0.12s ease;
+  }
+  .lightbox-v2 .lb-btn:hover { background: rgba(255,255,255,0.2); }
+  .lightbox-v2 .lb-btn.lb-like.active { background: var(--success); border-color: var(--success); }
+  .lightbox-v2 .lb-btn.lb-dislike.active { background: var(--error); border-color: var(--error); }
+
+  /* Cut remove button */
+  .cut-remove {
+    background: transparent;
+    border: none;
+    color: var(--faint);
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 4px 8px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .cut-remove:hover { color: var(--error); background: rgba(220,38,38,0.08); }
+
+  /* Modals */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(9,9,11,0.5);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow-lg);
+    padding: 28px 32px;
+    max-width: 440px;
+    width: calc(100% - 40px);
+  }
+  .modal h3 {
+    margin: 0 0 8px 0;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .modal p {
+    margin: 0 0 16px 0;
+    color: var(--text-2);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .modal input[type="text"], .modal input[type="password"], .modal textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px;
+    margin-bottom: 16px;
+  }
+  .modal input[type="text"]:focus, .modal input[type="password"]:focus, .modal textarea:focus {
+    outline: none;
+    border-color: var(--amber);
+    box-shadow: 0 0 0 3px var(--amber-soft);
+  }
+  .modal textarea { min-height: 100px; resize: vertical; line-height: 1.5; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+  .judge-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--amber-soft);
+    color: var(--amber-text);
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+  }
+  .judge-tag .change-link {
+    color: var(--amber-text);
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 10px;
+    margin-left: 4px;
+  }
+
+  /* Loading spinner */
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid rgba(9,9,11,0.15);
+    border-top-color: var(--ink);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: inline-block;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="bar-mark"></div>
+    <div class="wordmark">Run<span class="flow">flow</span></div>
+    <div class="crumb">Asset validation</div>
+  </div>
+  <div class="header-meta">
+    <span class="pill">Review &amp; approve</span>
+  </div>
+</header>
+
+<!-- Name/access modal removed — asset validation has no gate -->
+
+
+<!-- Feedback modal (shown on dislike) -->
+<!-- Submit confirmation modal -->
+<div class="modal-overlay" id="confirmSubmitModal">
+  <div class="modal">
+    <h3>Validate these for production?</h3>
+    <p id="confirmSubmitBody" style="color: var(--text-2);">You've reviewed every asset in this batch.</p>
+    <div id="confirmSubmitStats" style="display: flex; gap: 18px; padding: 14px 0; font-family: 'Outfit', sans-serif;"></div>
+    <p style="font-size: 13px; color: var(--muted); margin: 4px 0 14px;">The liked assets get marked production-ready and handed back to your Claude session to push to the ad account.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="confirmSubmitCancel">Keep editing</button>
+      <button class="btn btn-primary" id="confirmSubmitGo">Validate for production</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="handoffModal">
+  <div class="modal">
+    <h3>Validated for production ✓</h3>
+    <p id="handoffBody" style="color: var(--text-2);"></p>
+    <textarea id="handoffSnippet" readonly style="width:100%; box-sizing:border-box; min-height:84px; margin:6px 0 4px; padding:10px; border:1px solid var(--border); border-radius:10px; font-family:'Space Mono', monospace; font-size:12px; color:var(--ink); background:var(--elevated); resize:vertical;"></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="handoffClose">Close</button>
+      <button class="btn btn-primary" id="handoffCopy">Copy for Claude</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="feedbackModal">
+  <div class="modal">
+    <h3 id="feedbackTitle">What's off?</h3>
+    <p id="feedbackBody">Tell us why you wouldn't run this ad. Anything specific — wrong brand colors, bad text, awkward composition, doesn't match the hero?</p>
+    <textarea id="feedbackText" placeholder="A line or two is enough…"></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="feedbackSkip">Skip</button>
+      <button class="btn btn-primary" id="feedbackSubmit">Save</button>
+    </div>
+  </div>
+</div>
+
+<main>
+
+  <!-- TOP: production-style test input form -->
+  <!-- Asset validation gallery -->
+  <section>
+    <div class="eyebrow">Validate</div>
+    <h2 class="section-title">Review &amp; approve your assets</h2>
+    <p class="section-sub">These are the creatives generated from your Runflow session. Click any tile to open it fullscreen, then step through with ← / →. Mark 👍 the ones cleared to go live and 👎 the ones that aren't (tell us why in the box that pops up). Your picks decide what gets pushed to the ad account.</p>
+
+    <div id="batchPills" class="batch-pills"></div>
+
+    <div id="resultsGrid" class="results-grid"></div>
+
+    <div class="bottom-bar">
+      <div class="totals-line" id="scoreSummary">No ratings yet.</div>
+      <div style="display:flex; gap:8px; align-items: center;">
+        <span id="submitStatus" class="mono" style="font-size: 11px; color: var(--muted);"></span>
+        <button class="btn btn-primary" id="submitSlackBtn" disabled>Validate for production (0 / 0)</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="lightbox-v2" id="lightbox" onclick="lightboxBgClick(event)">
+  <button class="lb-close" onclick="closeLightbox()" title="Close (Esc)">×</button>
+  <button class="lb-nav lb-prev" onclick="event.stopPropagation(); lightboxNav(-1)" title="Previous (←)">←</button>
+  <button class="lb-nav lb-next" onclick="event.stopPropagation(); lightboxNav(1)" title="Next (→)">→</button>
+  <div class="lb-stage">
+    <img id="lightboxImg" alt="" />
+    <div class="lb-caption" id="lightboxCaption"></div>
+  </div>
+  <div class="lb-actions">
+    <button class="lb-btn lb-dislike" onclick="event.stopPropagation(); rateCurrent('dislike')" title="Dislike (D)">👎 Dislike</button>
+    <button class="lb-btn lb-like" onclick="event.stopPropagation(); rateCurrent('like')" title="Like (L)">👍 Like</button>
+  </div>
+</div>
+
+<script>
+const RUBRIC = [
+  { key: "brand_color", label: "Brand color fidelity" },
+  { key: "logo", label: "Logo presence + placement" },
+  { key: "text", label: "Headline + subhead rendered" },
+  { key: "hero", label: "Hero subject preserved" },
+  { key: "artifacts", label: "No visible AI artifacts" }
+];
+/* Heroes + brand logo are upload-only now (no URL input), so SAMPLE
+   only seeds the brand colors / font / tone / cuts / formats. */
+const SAMPLE = {
+  brandColor1: "#09090B",
+  brandColor2: "#FBBF24",
+  brandFont: "Bricolage Grotesque",
+  brandTone: "premium",
+  cuts: [
+    { label: "Performance marketer", headline: "Variants overnight, on-brand", subhead: "Cut creative-refresh costs by 4x", cta: "Get started" },
+    { label: "Indie founder", headline: "Ship the ad today", subhead: "From one hero to a full set", cta: "Try Runflow" }
+  ],
+  formats: ["1:1", "9:16"]
+};
+
+/* Presets the judge can pick from at Step 1. Each preset carries:
+   - brand kit (colours, font, tone) + 2 angles + formats (data)
+   - hero + logo URLs that point to static files shipped in dist/presets/
+     (so they survive Runflow's 24h CDN cache)
+   - pre-rendered workflow runs (runs) so judges can rate immediately,
+     no Generate click needed. Filled in by tools/build-presets.py after the
+     static assets are deployed. */
+const PRESET_ASSET_BASE = "https://templates.runflow.io/judge-dashboard/presets";
+const PRESETS = [
+  {
+    id: "chanel",
+    name: "Chanel · Perfume",
+    data: {
+      brandColor1: "#09090B",
+      brandColor2: "",
+      brandFont: "Couture",
+      brandTone: "premium",
+      cuts: [
+        { label: "Holiday gift", headline: "Make hers unforgettable", subhead: "From the icon to the everyday", cta: "Shop the collection" },
+        { label: "Fragrance loyalist", headline: "Your signature, refined", subhead: "Three icons, one collection", cta: "Discover" },
+        { label: "Spring relaunch", headline: "Bright on first wear", subhead: "Chance, made for the season ahead", cta: "Discover Chance" },
+        { label: "Holiday gift sets", headline: "Gift the icon", subhead: "Holiday sets, ready to give", cta: "Find the set" }
+      ],
+      formats: ["1:1", "9:16", "4:5", "16:9", "2:3"]
+    },
+    uploads: {
+      hero1: { preview_url: `${PRESET_ASSET_BASE}/chanel/hero1.jpg`, runflow_uri: `${PRESET_ASSET_BASE}/chanel/hero1.jpg`, filename: "hero1.jpg" },
+      hero2: { preview_url: `${PRESET_ASSET_BASE}/chanel/hero2.jpg`, runflow_uri: `${PRESET_ASSET_BASE}/chanel/hero2.jpg`, filename: "hero2.jpg" },
+      hero3: { preview_url: `${PRESET_ASSET_BASE}/chanel/hero3.jpg`, runflow_uri: `${PRESET_ASSET_BASE}/chanel/hero3.jpg`, filename: "hero3.jpg" },
+      brandLogo: { preview_url: `${PRESET_ASSET_BASE}/chanel/logo.png`, runflow_uri: `${PRESET_ASSET_BASE}/chanel/logo.png`, filename: "logo.png" }
+    },
+    runs: [
+      {"hero_idx": 1, "cut_idx": 2, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h1-c2-16x9.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Canvas: 16:9. Headline text: \"Your signature, refined\". Subhead text: \"Three icons, one collection\". Call to action: \"Discover\". Audience: Fragrance loyalist. Primary brand color: #09090B. Render all text in a typeface visually similar to Couture; do not include the word \"Couture\" anywhere in the image. Visual tone: premium. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference, recomposing it for the 16:9 canvas if the source crop differs. Compose the entire layout to fill the 16:9 canvas edge to edge. Do not letterbox, do not leave black or empty bars, do not pad with floating duplicate brand marks. The hero, copy stack, and logo lock-up must all sit within the requested 16:9 frame with deliberate margins, never as a smaller block centered in unused space.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/chanel/hero1.jpg"},
+      {"hero_idx": 2, "cut_idx": 1, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h2-c1-16x9.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Canvas: 16:9. Headline text: \"Make hers unforgettable\". Subhead text: \"From the icon to the everyday\". Call to action: \"Shop the collection\". Audience: Holiday gift. Primary brand color: #09090B. Render all text in a typeface visually similar to Couture; do not include the word \"Couture\" anywhere in the image. Visual tone: premium. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference, recomposing it for the 16:9 canvas if the source crop differs. Compose the entire layout to fill the 16:9 canvas edge to edge. Do not letterbox, do not leave black or empty bars, do not pad with floating duplicate brand marks. The hero, copy stack, and logo lock-up must all sit within the requested 16:9 frame with deliberate margins, never as a smaller block centered in unused space.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/chanel/hero2.jpg"},
+      {"hero_idx": 2, "cut_idx": 2, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h2-c2-1x1.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Canvas: 1:1. Headline text: \"Your signature, refined\". Subhead text: \"Three icons, one collection\". Call to action: \"Discover\". Audience: Fragrance loyalist. Primary brand color: #09090B. Render all text in a typeface visually similar to Couture; do not include the word \"Couture\" anywhere in the image. Visual tone: premium. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference, recomposing it for the 1:1 canvas if the source crop differs. Compose the entire layout to fill the 1:1 canvas edge to edge. Do not letterbox, do not leave black or empty bars, do not pad with floating duplicate brand marks. The hero, copy stack, and logo lock-up must all sit within the requested 1:1 frame with deliberate margins, never as a smaller block centered in unused space.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/chanel/hero2.jpg"},
+      {"hero_idx": 2, "cut_idx": 2, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h2-c2-9x16.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Canvas: 9:16. Headline text: \"Your signature, refined\". Subhead text: \"Three icons, one collection\". Call to action: \"Discover\". Audience: Fragrance loyalist. Primary brand color: #09090B. Render all text in a typeface visually similar to Couture; do not include the word \"Couture\" anywhere in the image. Visual tone: premium. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference, recomposing it for the 9:16 canvas if the source crop differs. Compose the entire layout to fill the 9:16 canvas edge to edge. Do not letterbox, do not leave black or empty bars, do not pad with floating duplicate brand marks. The hero, copy stack, and logo lock-up must all sit within the requested 9:16 frame with deliberate margins, never as a smaller block centered in unused space.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/chanel/hero2.jpg"},
+      {"hero_idx": 2, "cut_idx": 2, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h2-c2-4x5.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Canvas: 4:5. Headline text: \"Your signature, refined\". Subhead text: \"Three icons, one collection\". Call to action: \"Discover\". Audience: Fragrance loyalist. Primary brand color: #09090B. Render all text in a typeface visually similar to Couture; do not include the word \"Couture\" anywhere in the image. Visual tone: premium. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference, recomposing it for the 4:5 canvas if the source crop differs. Compose the entire layout to fill the 4:5 canvas edge to edge. Do not letterbox, do not leave black or empty bars, do not pad with floating duplicate brand marks. The hero, copy stack, and logo lock-up must all sit within the requested 4:5 frame with deliberate margins, never as a smaller block centered in unused space.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/chanel/hero2.jpg"},
+      {"hero_idx": 2, "cut_idx": 2, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h2-c2-16x9.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Canvas: 16:9. Headline text: \"Your signature, refined\". Subhead text: \"Three icons, one collection\". Call to action: \"Discover\". Audience: Fragrance loyalist. Primary brand color: #09090B. Render all text in a typeface visually similar to Couture; do not include the word \"Couture\" anywhere in the image. Visual tone: premium. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference, recomposing it for the 16:9 canvas if the source crop differs. Compose the entire layout to fill the 16:9 canvas edge to edge. Do not letterbox, do not leave black or empty bars, do not pad with floating duplicate brand marks. The hero, copy stack, and logo lock-up must all sit within the requested 16:9 frame with deliberate margins, never as a smaller block centered in unused space.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/chanel/hero2.jpg"},
+      {"hero_idx": 3, "cut_idx": 1, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h3-c1-1x1.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Canvas: 1:1. Headline text: \"Make hers unforgettable\". Subhead text: \"From the icon to the everyday\". Call to action: \"Shop the collection\". Audience: Holiday gift. Primary brand color: #09090B. Render all text in a typeface visually similar to Couture; do not include the word \"Couture\" anywhere in the image. Visual tone: premium. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference, recomposing it for the 1:1 canvas if the source crop differs. Compose the entire layout to fill the 1:1 canvas edge to edge. Do not letterbox, do not leave black or empty bars, do not pad with floating duplicate brand marks. The hero, copy stack, and logo lock-up must all sit within the requested 1:1 frame with deliberate margins, never as a smaller block centered in unused space.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/chanel/hero3.jpg"},
+      {"hero_idx": 3, "cut_idx": 1, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h3-c1-9x16.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Canvas: 9:16. Headline text: \"Make hers unforgettable\". Subhead text: \"From the icon to the everyday\". Call to action: \"Shop the collection\". Audience: Holiday gift. Primary brand color: #09090B. Render all text in a typeface visually similar to Couture; do not include the word \"Couture\" anywhere in the image. Visual tone: premium. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference, recomposing it for the 9:16 canvas if the source crop differs. Compose the entire layout to fill the 9:16 canvas edge to edge. Do not letterbox, do not leave black or empty bars, do not pad with floating duplicate brand marks. The hero, copy stack, and logo lock-up must all sit within the requested 9:16 frame with deliberate margins, never as a smaller block centered in unused space.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/chanel/hero3.jpg"},
+      {"hero_idx": 1, "cut_idx": 3, "format": "2:3", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h1-c3-2x3.jpg", "cost": 0.024603, "duration_ms": 34694, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Canvas: 2:3. Headline text: \"Bright on first wear\". Subhead text: \"Chance, made for the season ahead\". Call to action: \"Discover Chance\". Audience: Spring relaunch. Primary brand color: #09090B. Render all text in a typeface visually similar to Couture; do not include the word \"Couture\" anywhere in the image. Visual tone: premium. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference, recomposing it for the 2:3 canvas if the source crop differs. Compose the entire layout to fill the 2:3 canvas edge to edge. Do not letterbox, do not leave black or empty bars, do not pad with floating duplicate brand marks. The hero, copy stack, and logo lock-up must all sit within the requested 2:3 frame with deliberate margins, never as a smaller block centered in unused space.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/chanel/hero1.jpg"},
+      {"hero_idx": 2, "cut_idx": 3, "format": "2:3", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h2-c3-2x3.jpg", "cost": 0.022684, "duration_ms": 31997, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Canvas: 2:3. Headline text: \"Bright on first wear\". Subhead text: \"Chance, made for the season ahead\". Call to action: \"Discover Chance\". Audience: Spring relaunch. Primary brand color: #09090B. Render all text in a typeface visually similar to Couture; do not include the word \"Couture\" anywhere in the image. Visual tone: premium. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference, recomposing it for the 2:3 canvas if the source crop differs. Compose the entire layout to fill the 2:3 canvas edge to edge. Do not letterbox, do not leave black or empty bars, do not pad with floating duplicate brand marks. The hero, copy stack, and logo lock-up must all sit within the requested 2:3 frame with deliberate margins, never as a smaller block centered in unused space.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/chanel/hero2.jpg"},
+      {"hero_idx": 3, "cut_idx": 3, "format": "2:3", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h3-c3-2x3.jpg", "cost": 0.027196, "duration_ms": 38272, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Canvas: 2:3. Headline text: \"Bright on first wear\". Subhead text: \"Chance, made for the season ahead\". Call to action: \"Discover Chance\". Audience: Spring relaunch. Primary brand color: #09090B. Render all text in a typeface visually similar to Couture; do not include the word \"Couture\" anywhere in the image. Visual tone: premium. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference, recomposing it for the 2:3 canvas if the source crop differs. Compose the entire layout to fill the 2:3 canvas edge to edge. Do not letterbox, do not leave black or empty bars, do not pad with floating duplicate brand marks. The hero, copy stack, and logo lock-up must all sit within the requested 2:3 frame with deliberate margins, never as a smaller block centered in unused space.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/chanel/hero3.jpg"},
+      {"hero_idx": 1, "cut_idx": 4, "format": "2:3", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h1-c4-2x3.jpg", "cost": 0.030638, "duration_ms": 43184, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Canvas: 2:3. Headline text: \"Gift the icon\". Subhead text: \"Holiday sets, ready to give\". Call to action: \"Find the set\". Audience: Holiday gift sets. Primary brand color: #09090B. Render all text in a typeface visually similar to Couture; do not include the word \"Couture\" anywhere in the image. Visual tone: premium. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference, recomposing it for the 2:3 canvas if the source crop differs. Compose the entire layout to fill the 2:3 canvas edge to edge. Do not letterbox, do not leave black or empty bars, do not pad with floating duplicate brand marks. The hero, copy stack, and logo lock-up must all sit within the requested 2:3 frame with deliberate margins, never as a smaller block centered in unused space.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/chanel/hero1.jpg"},
+      {"hero_idx": 3, "cut_idx": 4, "format": "2:3", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h3-c4-2x3.jpg", "cost": 0.028074, "duration_ms": 39548, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Canvas: 2:3. Headline text: \"Gift the icon\". Subhead text: \"Holiday sets, ready to give\". Call to action: \"Find the set\". Audience: Holiday gift sets. Primary brand color: #09090B. Render all text in a typeface visually similar to Couture; do not include the word \"Couture\" anywhere in the image. Visual tone: premium. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference, recomposing it for the 2:3 canvas if the source crop differs. Compose the entire layout to fill the 2:3 canvas edge to edge. Do not letterbox, do not leave black or empty bars, do not pad with floating duplicate brand marks. The hero, copy stack, and logo lock-up must all sit within the requested 2:3 frame with deliberate margins, never as a smaller block centered in unused space.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/chanel/hero3.jpg"},
+      {"hero_idx": 1, "cut_idx": 1, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h1-c1-1x1-v2.jpg", "cost": 0.025531, "duration_ms": 35952, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Canvas: 1:1. Headline text: \"Make hers unforgettable\". Subhead text: \"From the icon to the everyday\". Call to action: \"Shop the collection\". Audience: Holiday gift. Primary brand color: #09090B. Render all text in a typeface visually similar to Couture; do not include the word \"Couture\" anywhere in the image. Visual tone: premium. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference, recomposing it for the 1:1 canvas if the source crop differs. Compose the entire layout to fill the 1:1 canvas edge to edge. Do not letterbox, do not leave black or empty bars, do not pad with floating duplicate brand marks. The hero, copy stack, and logo lock-up must all sit within the requested 1:1 frame with deliberate margins, never as a smaller block centered in unused space.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/chanel/hero1.jpg"},
+      {"hero_idx": 1, "cut_idx": 1, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h1-c1-9x16-v2.jpg", "cost": 0.036155, "duration_ms": 50948, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Canvas: 9:16. Headline text: \"Make hers unforgettable\". Subhead text: \"From the icon to the everyday\". Call to action: \"Shop the collection\". Audience: Holiday gift. Primary brand color: #09090B. Render all text in a typeface visually similar to Couture; do not include the word \"Couture\" anywhere in the image. Visual tone: premium. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference, recomposing it for the 9:16 canvas if the source crop differs. Compose the entire layout to fill the 9:16 canvas edge to edge. Do not letterbox, do not leave black or empty bars, do not pad with floating duplicate brand marks. The hero, copy stack, and logo lock-up must all sit within the requested 9:16 frame with deliberate margins, never as a smaller block centered in unused space.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/chanel/hero1.jpg"},
+      {"hero_idx": 1, "cut_idx": 2, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h1-c2-1x1-v2.jpg", "cost": 0.023957, "duration_ms": 33790, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Canvas: 1:1. Headline text: \"Your signature, refined\". Subhead text: \"Three icons, one collection\". Call to action: \"Discover\". Audience: Fragrance loyalist. Primary brand color: #09090B. Render all text in a typeface visually similar to Couture; do not include the word \"Couture\" anywhere in the image. Visual tone: premium. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference, recomposing it for the 1:1 canvas if the source crop differs. Compose the entire layout to fill the 1:1 canvas edge to edge. Do not letterbox, do not leave black or empty bars, do not pad with floating duplicate brand marks. The hero, copy stack, and logo lock-up must all sit within the requested 1:1 frame with deliberate margins, never as a smaller block centered in unused space.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/chanel/hero1.jpg"},
+      {"hero_idx": 1, "cut_idx": 2, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h1-c2-9x16-v2.jpg", "cost": 0.028903, "duration_ms": 40570, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Canvas: 9:16. Headline text: \"Your signature, refined\". Subhead text: \"Three icons, one collection\". Call to action: \"Discover\". Audience: Fragrance loyalist. Primary brand color: #09090B. Render all text in a typeface visually similar to Couture; do not include the word \"Couture\" anywhere in the image. Visual tone: premium. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference, recomposing it for the 9:16 canvas if the source crop differs. Compose the entire layout to fill the 9:16 canvas edge to edge. Do not letterbox, do not leave black or empty bars, do not pad with floating duplicate brand marks. The hero, copy stack, and logo lock-up must all sit within the requested 9:16 frame with deliberate margins, never as a smaller block centered in unused space.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/chanel/hero1.jpg"},
+      {"hero_idx": 2, "cut_idx": 1, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h2-c1-1x1-v2.jpg", "cost": 0.023506, "duration_ms": 33125, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Canvas: 1:1. Headline text: \"Make hers unforgettable\". Subhead text: \"From the icon to the everyday\". Call to action: \"Shop the collection\". Audience: Holiday gift. Primary brand color: #09090B. Render all text in a typeface visually similar to Couture; do not include the word \"Couture\" anywhere in the image. Visual tone: premium. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference, recomposing it for the 1:1 canvas if the source crop differs. Compose the entire layout to fill the 1:1 canvas edge to edge. Do not letterbox, do not leave black or empty bars, do not pad with floating duplicate brand marks. The hero, copy stack, and logo lock-up must all sit within the requested 1:1 frame with deliberate margins, never as a smaller block centered in unused space.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/chanel/hero2.jpg"},
+      {"hero_idx": 2, "cut_idx": 1, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h2-c1-9x16-v2.jpg", "cost": 0.048167, "duration_ms": 67886, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Canvas: 9:16. Headline text: \"Make hers unforgettable\". Subhead text: \"From the icon to the everyday\". Call to action: \"Shop the collection\". Audience: Holiday gift. Primary brand color: #09090B. Render all text in a typeface visually similar to Couture; do not include the word \"Couture\" anywhere in the image. Visual tone: premium. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference, recomposing it for the 9:16 canvas if the source crop differs. Compose the entire layout to fill the 9:16 canvas edge to edge. Do not letterbox, do not leave black or empty bars, do not pad with floating duplicate brand marks. The hero, copy stack, and logo lock-up must all sit within the requested 9:16 frame with deliberate margins, never as a smaller block centered in unused space.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/chanel/hero2.jpg"},
+      {"hero_idx": 2, "cut_idx": 2, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h2-c2-1x1-v2.jpg", "cost": 0.02316, "duration_ms": 32628, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Canvas: 1:1. Headline text: \"Your signature, refined\". Subhead text: \"Three icons, one collection\". Call to action: \"Discover\". Audience: Fragrance loyalist. Primary brand color: #09090B. Render all text in a typeface visually similar to Couture; do not include the word \"Couture\" anywhere in the image. Visual tone: premium. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference, recomposing it for the 1:1 canvas if the source crop differs. Compose the entire layout to fill the 1:1 canvas edge to edge. Do not letterbox, do not leave black or empty bars, do not pad with floating duplicate brand marks. The hero, copy stack, and logo lock-up must all sit within the requested 1:1 frame with deliberate margins, never as a smaller block centered in unused space.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/chanel/hero2.jpg"},
+      {"hero_idx": 2, "cut_idx": 2, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h2-c2-9x16-v2.jpg", "cost": 0.03913, "duration_ms": 55052, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Canvas: 9:16. Headline text: \"Your signature, refined\". Subhead text: \"Three icons, one collection\". Call to action: \"Discover\". Audience: Fragrance loyalist. Primary brand color: #09090B. Render all text in a typeface visually similar to Couture; do not include the word \"Couture\" anywhere in the image. Visual tone: premium. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference, recomposing it for the 9:16 canvas if the source crop differs. Compose the entire layout to fill the 9:16 canvas edge to edge. Do not letterbox, do not leave black or empty bars, do not pad with floating duplicate brand marks. The hero, copy stack, and logo lock-up must all sit within the requested 9:16 frame with deliberate margins, never as a smaller block centered in unused space.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/chanel/hero2.jpg"},
+      {"hero_idx": 3, "cut_idx": 1, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h3-c1-1x1-v2.jpg", "cost": 0.029492, "duration_ms": 41526, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Canvas: 1:1. Headline text: \"Make hers unforgettable\". Subhead text: \"From the icon to the everyday\". Call to action: \"Shop the collection\". Audience: Holiday gift. Primary brand color: #09090B. Render all text in a typeface visually similar to Couture; do not include the word \"Couture\" anywhere in the image. Visual tone: premium. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference, recomposing it for the 1:1 canvas if the source crop differs. Compose the entire layout to fill the 1:1 canvas edge to edge. Do not letterbox, do not leave black or empty bars, do not pad with floating duplicate brand marks. The hero, copy stack, and logo lock-up must all sit within the requested 1:1 frame with deliberate margins, never as a smaller block centered in unused space.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/chanel/hero3.jpg"},
+      {"hero_idx": 3, "cut_idx": 1, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h3-c1-9x16-v2.jpg", "cost": 0.028809, "duration_ms": 40578, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Canvas: 9:16. Headline text: \"Make hers unforgettable\". Subhead text: \"From the icon to the everyday\". Call to action: \"Shop the collection\". Audience: Holiday gift. Primary brand color: #09090B. Render all text in a typeface visually similar to Couture; do not include the word \"Couture\" anywhere in the image. Visual tone: premium. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference, recomposing it for the 9:16 canvas if the source crop differs. Compose the entire layout to fill the 9:16 canvas edge to edge. Do not letterbox, do not leave black or empty bars, do not pad with floating duplicate brand marks. The hero, copy stack, and logo lock-up must all sit within the requested 9:16 frame with deliberate margins, never as a smaller block centered in unused space.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/chanel/hero3.jpg"},
+      {"hero_idx": 3, "cut_idx": 2, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h3-c2-1x1-v2.jpg", "cost": 0.027131, "duration_ms": 38213, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Canvas: 1:1. Headline text: \"Your signature, refined\". Subhead text: \"Three icons, one collection\". Call to action: \"Discover\". Audience: Fragrance loyalist. Primary brand color: #09090B. Render all text in a typeface visually similar to Couture; do not include the word \"Couture\" anywhere in the image. Visual tone: premium. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference, recomposing it for the 1:1 canvas if the source crop differs. Compose the entire layout to fill the 1:1 canvas edge to edge. Do not letterbox, do not leave black or empty bars, do not pad with floating duplicate brand marks. The hero, copy stack, and logo lock-up must all sit within the requested 1:1 frame with deliberate margins, never as a smaller block centered in unused space.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/chanel/hero3.jpg"},
+      {"hero_idx": 3, "cut_idx": 2, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/chanel/runs/h3-c2-9x16-v2.jpg", "cost": 0.028772, "duration_ms": 40522, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Canvas: 9:16. Headline text: \"Your signature, refined\". Subhead text: \"Three icons, one collection\". Call to action: \"Discover\". Audience: Fragrance loyalist. Primary brand color: #09090B. Render all text in a typeface visually similar to Couture; do not include the word \"Couture\" anywhere in the image. Visual tone: premium. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference, recomposing it for the 9:16 canvas if the source crop differs. Compose the entire layout to fill the 9:16 canvas edge to edge. Do not letterbox, do not leave black or empty bars, do not pad with floating duplicate brand marks. The hero, copy stack, and logo lock-up must all sit within the requested 9:16 frame with deliberate margins, never as a smaller block centered in unused space.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/chanel/hero3.jpg"}
+    ]
+  },
+  {
+    id: "runflow",
+    name: "Runflow · Studio",
+    data: {
+      brandColor1: "#09090B",
+      brandColor2: "#FBBF24",
+      brandFont: "Bricolage Grotesque",
+      brandTone: "minimal",
+      cuts: [
+        { label: "Performance marketer", headline: "Variants overnight, on-brand", subhead: "Cut creative-refresh costs by 4x", cta: "Get started" },
+        { label: "Indie founder", headline: "Ship the ad today", subhead: "From one hero to a full set", cta: "Try Runflow" }
+      ],
+      formats: ["16:9", "4:5", "1:1"]
+    },
+    uploads: {
+      hero1: { preview_url: `${PRESET_ASSET_BASE}/runflow/hero1.jpg`, runflow_uri: `${PRESET_ASSET_BASE}/runflow/hero1.jpg`, filename: "hero1.jpg" },
+      hero2: { preview_url: `${PRESET_ASSET_BASE}/runflow/hero2.jpg`, runflow_uri: `${PRESET_ASSET_BASE}/runflow/hero2.jpg`, filename: "hero2.jpg" },
+      hero3: { preview_url: `${PRESET_ASSET_BASE}/runflow/hero3.jpg`, runflow_uri: `${PRESET_ASSET_BASE}/runflow/hero3.jpg`, filename: "hero3.jpg" },
+      brandLogo: { preview_url: `${PRESET_ASSET_BASE}/runflow/logo.png`, runflow_uri: `${PRESET_ASSET_BASE}/runflow/logo.png`, filename: "logo.png" }
+    },
+    runs: [
+      {"hero_idx": 1, "cut_idx": 1, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h1-c1-16x9.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Variants overnight, on-brand\". Subhead text: \"Cut creative-refresh costs by 4x\". Call to action: \"Get started\". Audience: Performance marketer. Primary brand color: #09090B. Secondary brand color: #FBBF24. Use the typography of: Bricolage Grotesque. Visual tone: minimal. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/runflow/hero1.jpg"},
+      {"hero_idx": 1, "cut_idx": 1, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h1-c1-4x5.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Variants overnight, on-brand\". Subhead text: \"Cut creative-refresh costs by 4x\". Call to action: \"Get started\". Audience: Performance marketer. Primary brand color: #09090B. Secondary brand color: #FBBF24. Use the typography of: Bricolage Grotesque. Visual tone: minimal. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/runflow/hero1.jpg"},
+      {"hero_idx": 1, "cut_idx": 1, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h1-c1-1x1.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Variants overnight, on-brand\". Subhead text: \"Cut creative-refresh costs by 4x\". Call to action: \"Get started\". Audience: Performance marketer. Primary brand color: #09090B. Secondary brand color: #FBBF24. Use the typography of: Bricolage Grotesque. Visual tone: minimal. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/runflow/hero1.jpg"},
+      {"hero_idx": 1, "cut_idx": 2, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h1-c2-16x9.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Ship the ad today\". Subhead text: \"From one hero to a full set\". Call to action: \"Try Runflow\". Audience: Indie founder. Primary brand color: #09090B. Secondary brand color: #FBBF24. Use the typography of: Bricolage Grotesque. Visual tone: minimal. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/runflow/hero1.jpg"},
+      {"hero_idx": 1, "cut_idx": 2, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h1-c2-4x5.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Ship the ad today\". Subhead text: \"From one hero to a full set\". Call to action: \"Try Runflow\". Audience: Indie founder. Primary brand color: #09090B. Secondary brand color: #FBBF24. Use the typography of: Bricolage Grotesque. Visual tone: minimal. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/runflow/hero1.jpg"},
+      {"hero_idx": 1, "cut_idx": 2, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h1-c2-1x1.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Ship the ad today\". Subhead text: \"From one hero to a full set\". Call to action: \"Try Runflow\". Audience: Indie founder. Primary brand color: #09090B. Secondary brand color: #FBBF24. Use the typography of: Bricolage Grotesque. Visual tone: minimal. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/runflow/hero1.jpg"},
+      {"hero_idx": 2, "cut_idx": 1, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h2-c1-16x9.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Variants overnight, on-brand\". Subhead text: \"Cut creative-refresh costs by 4x\". Call to action: \"Get started\". Audience: Performance marketer. Primary brand color: #09090B. Secondary brand color: #FBBF24. Use the typography of: Bricolage Grotesque. Visual tone: minimal. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/runflow/hero2.jpg"},
+      {"hero_idx": 2, "cut_idx": 1, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h2-c1-4x5.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Variants overnight, on-brand\". Subhead text: \"Cut creative-refresh costs by 4x\". Call to action: \"Get started\". Audience: Performance marketer. Primary brand color: #09090B. Secondary brand color: #FBBF24. Use the typography of: Bricolage Grotesque. Visual tone: minimal. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/runflow/hero2.jpg"},
+      {"hero_idx": 2, "cut_idx": 1, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h2-c1-1x1.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Variants overnight, on-brand\". Subhead text: \"Cut creative-refresh costs by 4x\". Call to action: \"Get started\". Audience: Performance marketer. Primary brand color: #09090B. Secondary brand color: #FBBF24. Use the typography of: Bricolage Grotesque. Visual tone: minimal. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/runflow/hero2.jpg"},
+      {"hero_idx": 2, "cut_idx": 2, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h2-c2-16x9.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Ship the ad today\". Subhead text: \"From one hero to a full set\". Call to action: \"Try Runflow\". Audience: Indie founder. Primary brand color: #09090B. Secondary brand color: #FBBF24. Use the typography of: Bricolage Grotesque. Visual tone: minimal. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/runflow/hero2.jpg"},
+      {"hero_idx": 2, "cut_idx": 2, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h2-c2-4x5.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Ship the ad today\". Subhead text: \"From one hero to a full set\". Call to action: \"Try Runflow\". Audience: Indie founder. Primary brand color: #09090B. Secondary brand color: #FBBF24. Use the typography of: Bricolage Grotesque. Visual tone: minimal. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/runflow/hero2.jpg"},
+      {"hero_idx": 2, "cut_idx": 2, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h2-c2-1x1.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Ship the ad today\". Subhead text: \"From one hero to a full set\". Call to action: \"Try Runflow\". Audience: Indie founder. Primary brand color: #09090B. Secondary brand color: #FBBF24. Use the typography of: Bricolage Grotesque. Visual tone: minimal. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/runflow/hero2.jpg"},
+      {"hero_idx": 3, "cut_idx": 1, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h3-c1-16x9.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Variants overnight, on-brand\". Subhead text: \"Cut creative-refresh costs by 4x\". Call to action: \"Get started\". Audience: Performance marketer. Primary brand color: #09090B. Secondary brand color: #FBBF24. Use the typography of: Bricolage Grotesque. Visual tone: minimal. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/runflow/hero3.jpg"},
+      {"hero_idx": 3, "cut_idx": 1, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h3-c1-4x5.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Variants overnight, on-brand\". Subhead text: \"Cut creative-refresh costs by 4x\". Call to action: \"Get started\". Audience: Performance marketer. Primary brand color: #09090B. Secondary brand color: #FBBF24. Use the typography of: Bricolage Grotesque. Visual tone: minimal. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/runflow/hero3.jpg"},
+      {"hero_idx": 3, "cut_idx": 1, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h3-c1-1x1.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Variants overnight, on-brand\". Subhead text: \"Cut creative-refresh costs by 4x\". Call to action: \"Get started\". Audience: Performance marketer. Primary brand color: #09090B. Secondary brand color: #FBBF24. Use the typography of: Bricolage Grotesque. Visual tone: minimal. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/runflow/hero3.jpg"},
+      {"hero_idx": 3, "cut_idx": 2, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h3-c2-16x9.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Ship the ad today\". Subhead text: \"From one hero to a full set\". Call to action: \"Try Runflow\". Audience: Indie founder. Primary brand color: #09090B. Secondary brand color: #FBBF24. Use the typography of: Bricolage Grotesque. Visual tone: minimal. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/runflow/hero3.jpg"},
+      {"hero_idx": 3, "cut_idx": 2, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h3-c2-4x5.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Ship the ad today\". Subhead text: \"From one hero to a full set\". Call to action: \"Try Runflow\". Audience: Indie founder. Primary brand color: #09090B. Secondary brand color: #FBBF24. Use the typography of: Bricolage Grotesque. Visual tone: minimal. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/runflow/hero3.jpg"},
+      {"hero_idx": 3, "cut_idx": 2, "format": "1:1", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/runflow/runs/h3-c2-1x1.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Ship the ad today\". Subhead text: \"From one hero to a full set\". Call to action: \"Try Runflow\". Audience: Indie founder. Primary brand color: #09090B. Secondary brand color: #FBBF24. Use the typography of: Bricolage Grotesque. Visual tone: minimal. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/runflow/hero3.jpg"}
+    ]
+  },
+  {
+    id: "ikea",
+    name: "Ikea · Home",
+    data: {
+      brandColor1: "#0058A3",
+      brandColor2: "#FFDB00",
+      brandFont: "Noto Sans",
+      brandTone: "playful",
+      cuts: [
+        { label: "Performance marketer", headline: "Variants overnight, on-brand", subhead: "Cut creative-refresh costs by 4x", cta: "Get started" },
+        { label: "Indie founder", headline: "Ship the ad today", subhead: "From one hero to a full set", cta: "Try Runflow" }
+      ],
+      formats: ["9:16", "16:9", "4:5"]
+    },
+    uploads: {
+      hero1: { preview_url: `${PRESET_ASSET_BASE}/ikea/hero1.jpg`, runflow_uri: `${PRESET_ASSET_BASE}/ikea/hero1.jpg`, filename: "hero1.jpg" },
+      hero2: { preview_url: `${PRESET_ASSET_BASE}/ikea/hero2.jpg`, runflow_uri: `${PRESET_ASSET_BASE}/ikea/hero2.jpg`, filename: "hero2.jpg" },
+      hero3: { preview_url: `${PRESET_ASSET_BASE}/ikea/hero3.jpg`, runflow_uri: `${PRESET_ASSET_BASE}/ikea/hero3.jpg`, filename: "hero3.jpg" },
+      brandLogo: { preview_url: `${PRESET_ASSET_BASE}/ikea/logo.jpg`, runflow_uri: `${PRESET_ASSET_BASE}/ikea/logo.jpg`, filename: "logo.jpg" }
+    },
+    runs: [
+      {"hero_idx": 1, "cut_idx": 1, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h1-c1-9x16.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Variants overnight, on-brand\". Subhead text: \"Cut creative-refresh costs by 4x\". Call to action: \"Get started\". Audience: Performance marketer. Primary brand color: #0058A3. Secondary brand color: #FFDB00. Use the typography of: Noto Sans. Visual tone: playful. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/ikea/hero1.jpg"},
+      {"hero_idx": 1, "cut_idx": 1, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h1-c1-16x9.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Variants overnight, on-brand\". Subhead text: \"Cut creative-refresh costs by 4x\". Call to action: \"Get started\". Audience: Performance marketer. Primary brand color: #0058A3. Secondary brand color: #FFDB00. Use the typography of: Noto Sans. Visual tone: playful. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/ikea/hero1.jpg"},
+      {"hero_idx": 1, "cut_idx": 1, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h1-c1-4x5.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Variants overnight, on-brand\". Subhead text: \"Cut creative-refresh costs by 4x\". Call to action: \"Get started\". Audience: Performance marketer. Primary brand color: #0058A3. Secondary brand color: #FFDB00. Use the typography of: Noto Sans. Visual tone: playful. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/ikea/hero1.jpg"},
+      {"hero_idx": 1, "cut_idx": 2, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h1-c2-9x16.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Ship the ad today\". Subhead text: \"From one hero to a full set\". Call to action: \"Try Runflow\". Audience: Indie founder. Primary brand color: #0058A3. Secondary brand color: #FFDB00. Use the typography of: Noto Sans. Visual tone: playful. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/ikea/hero1.jpg"},
+      {"hero_idx": 1, "cut_idx": 2, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h1-c2-16x9.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Ship the ad today\". Subhead text: \"From one hero to a full set\". Call to action: \"Try Runflow\". Audience: Indie founder. Primary brand color: #0058A3. Secondary brand color: #FFDB00. Use the typography of: Noto Sans. Visual tone: playful. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/ikea/hero1.jpg"},
+      {"hero_idx": 1, "cut_idx": 2, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h1-c2-4x5.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Ship the ad today\". Subhead text: \"From one hero to a full set\". Call to action: \"Try Runflow\". Audience: Indie founder. Primary brand color: #0058A3. Secondary brand color: #FFDB00. Use the typography of: Noto Sans. Visual tone: playful. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/ikea/hero1.jpg"},
+      {"hero_idx": 2, "cut_idx": 1, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h2-c1-9x16.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Variants overnight, on-brand\". Subhead text: \"Cut creative-refresh costs by 4x\". Call to action: \"Get started\". Audience: Performance marketer. Primary brand color: #0058A3. Secondary brand color: #FFDB00. Use the typography of: Noto Sans. Visual tone: playful. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/ikea/hero2.jpg"},
+      {"hero_idx": 2, "cut_idx": 1, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h2-c1-16x9.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Variants overnight, on-brand\". Subhead text: \"Cut creative-refresh costs by 4x\". Call to action: \"Get started\". Audience: Performance marketer. Primary brand color: #0058A3. Secondary brand color: #FFDB00. Use the typography of: Noto Sans. Visual tone: playful. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/ikea/hero2.jpg"},
+      {"hero_idx": 2, "cut_idx": 1, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h2-c1-4x5.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Variants overnight, on-brand\". Subhead text: \"Cut creative-refresh costs by 4x\". Call to action: \"Get started\". Audience: Performance marketer. Primary brand color: #0058A3. Secondary brand color: #FFDB00. Use the typography of: Noto Sans. Visual tone: playful. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/ikea/hero2.jpg"},
+      {"hero_idx": 2, "cut_idx": 2, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h2-c2-9x16.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Ship the ad today\". Subhead text: \"From one hero to a full set\". Call to action: \"Try Runflow\". Audience: Indie founder. Primary brand color: #0058A3. Secondary brand color: #FFDB00. Use the typography of: Noto Sans. Visual tone: playful. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/ikea/hero2.jpg"},
+      {"hero_idx": 2, "cut_idx": 2, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h2-c2-16x9.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Ship the ad today\". Subhead text: \"From one hero to a full set\". Call to action: \"Try Runflow\". Audience: Indie founder. Primary brand color: #0058A3. Secondary brand color: #FFDB00. Use the typography of: Noto Sans. Visual tone: playful. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/ikea/hero2.jpg"},
+      {"hero_idx": 2, "cut_idx": 2, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h2-c2-4x5.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Ship the ad today\". Subhead text: \"From one hero to a full set\". Call to action: \"Try Runflow\". Audience: Indie founder. Primary brand color: #0058A3. Secondary brand color: #FFDB00. Use the typography of: Noto Sans. Visual tone: playful. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/ikea/hero2.jpg"},
+      {"hero_idx": 3, "cut_idx": 1, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h3-c1-9x16.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Variants overnight, on-brand\". Subhead text: \"Cut creative-refresh costs by 4x\". Call to action: \"Get started\". Audience: Performance marketer. Primary brand color: #0058A3. Secondary brand color: #FFDB00. Use the typography of: Noto Sans. Visual tone: playful. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/ikea/hero3.jpg"},
+      {"hero_idx": 3, "cut_idx": 1, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h3-c1-16x9.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Variants overnight, on-brand\". Subhead text: \"Cut creative-refresh costs by 4x\". Call to action: \"Get started\". Audience: Performance marketer. Primary brand color: #0058A3. Secondary brand color: #FFDB00. Use the typography of: Noto Sans. Visual tone: playful. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/ikea/hero3.jpg"},
+      {"hero_idx": 3, "cut_idx": 1, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h3-c1-4x5.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Variants overnight, on-brand\". Subhead text: \"Cut creative-refresh costs by 4x\". Call to action: \"Get started\". Audience: Performance marketer. Primary brand color: #0058A3. Secondary brand color: #FFDB00. Use the typography of: Noto Sans. Visual tone: playful. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/ikea/hero3.jpg"},
+      {"hero_idx": 3, "cut_idx": 2, "format": "9:16", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h3-c2-9x16.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Ship the ad today\". Subhead text: \"From one hero to a full set\". Call to action: \"Try Runflow\". Audience: Indie founder. Primary brand color: #0058A3. Secondary brand color: #FFDB00. Use the typography of: Noto Sans. Visual tone: playful. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/ikea/hero3.jpg"},
+      {"hero_idx": 3, "cut_idx": 2, "format": "16:9", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h3-c2-16x9.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Ship the ad today\". Subhead text: \"From one hero to a full set\". Call to action: \"Try Runflow\". Audience: Indie founder. Primary brand color: #0058A3. Secondary brand color: #FFDB00. Use the typography of: Noto Sans. Visual tone: playful. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/ikea/hero3.jpg"},
+      {"hero_idx": 3, "cut_idx": 2, "format": "4:5", "status": "succeeded", "image": "https://templates.runflow.io/judge-dashboard/presets/ikea/runs/h3-c2-4x5.jpg", "cost": null, "duration_ms": null, "prompt": "Produce a brand-locked ad variant from the provided primary design reference. Headline text: \"Ship the ad today\". Subhead text: \"From one hero to a full set\". Call to action: \"Try Runflow\". Audience: Indie founder. Primary brand color: #0058A3. Secondary brand color: #FFDB00. Use the typography of: Noto Sans. Visual tone: playful. Place the provided logo in a prominent corner safe zone. Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.", "hero_url": "https://templates.runflow.io/judge-dashboard/presets/ikea/hero3.jpg"}
+    ]
+  }
+];
+
+/* Single workflow endpoint — judges don't see this, the dashboard runs every
+   set of inputs through one canonical workflow and surfaces only images. */
+const WORKFLOW_ENDPOINT = "https://api.runflow.io/v1/comfyui-workflows/runflow-access/brand-locked-variant-nux/runs";
+
+let UPLOADS = JSON.parse(localStorage.getItem("runflow_uploads_c01_v2") || "{}");
+let BATCHES = JSON.parse(localStorage.getItem("runflow_batches_v1") || "[]");
+let CURRENT_BATCH_ID = localStorage.getItem("runflow_current_batch_v1") || "";
+let JUDGE_NAME = localStorage.getItem("runflow_judge_name_v1") || "";
+let JUDGE_COMPANY = localStorage.getItem("runflow_judge_company_v1") || "";
+// IS_ADMIN gates internal-cost visibility (and tile delete/recover/raw output).
+// Everyone has access to the input form, generation, and rating regardless.
+let IS_ADMIN = localStorage.getItem("runflow_is_admin_v1") === "true";
+
+// Tile IDs that an admin has hidden across every judge's browser. Lives in
+// Vercel Blob via /api/preset-overrides — fetched at boot, refreshed after
+// every admin hide action.
+let HIDDEN_TILES = new Set();
+
+// Any of these unlocks the dashboard. Only "Runflow.io/team" unlocks
+// admin features (cost visibility, tile delete/recover, raw output).
+const VALID_PASSWORDS = ["Runflow.io/team", "RunflowJudges2026"];
+const ADMIN_PASSWORDS = ["Runflow.io/team"];
+
+function saveU() { localStorage.setItem("runflow_uploads_c01_v2", JSON.stringify(UPLOADS)); }
+function saveBatches() { localStorage.setItem("runflow_batches_v1", JSON.stringify(BATCHES)); }
+function saveCurrentBatch() { localStorage.setItem("runflow_current_batch_v1", CURRENT_BATCH_ID); }
+function saveJudgeName() { localStorage.setItem("runflow_judge_name_v1", JUDGE_NAME); }
+function saveJudgeCompany() { localStorage.setItem("runflow_judge_company_v1", JUDGE_COMPANY); }
+function saveAdmin() { localStorage.setItem("runflow_is_admin_v1", IS_ADMIN ? "true" : "false"); }
+
+// Live aliases that read/write the current batch
+function currentBatch() {
+  let b = BATCHES.find(x => x.id === CURRENT_BATCH_ID);
+  if (!b && BATCHES.length) { b = BATCHES[BATCHES.length - 1]; CURRENT_BATCH_ID = b.id; saveCurrentBatch(); }
+  return b || null;
+}
+const RESULTS_PROXY = new Proxy({}, {});
+// Define RESULTS / LIKES / FEEDBACK as live getters bound to the current batch
+Object.defineProperty(window, "RESULTS", { get() { const b = currentBatch(); return b ? b.results : []; }, set(v) { const b = currentBatch(); if (b) { b.results = v; saveBatches(); } } });
+Object.defineProperty(window, "LIKES",   { get() { const b = currentBatch(); return b ? (b.likes ||= {}) : {};   }, set(v) { const b = currentBatch(); if (b) { b.likes = v; saveBatches(); } } });
+Object.defineProperty(window, "FEEDBACK",{ get() { const b = currentBatch(); return b ? (b.feedback ||= {}) : {}; }, set(v) { const b = currentBatch(); if (b) { b.feedback = v; saveBatches(); } } });
+Object.defineProperty(window, "GEN_STATE",{ get() { const b = currentBatch(); return b ? (b.gen_state ||= {status:"idle",total:0,done:0,error:null}) : {status:"idle",total:0,done:0,error:null}; }, set(v) { const b = currentBatch(); if (b) { b.gen_state = v; saveBatches(); } } });
+
+// All the save* helpers used by the old single-batch flow now just persist BATCHES
+function saveResults() { saveBatches(); }
+function saveLikes() { saveBatches(); }
+function saveFeedback() { saveBatches(); }
+function saveGenState() { saveBatches(); }
+
+// One-time migration: if we have the old flat localStorage state, wrap it into a single batch
+(function migrateLegacyState() {
+  const oldResults = JSON.parse(localStorage.getItem("runflow_results_v1") || "null");
+  const oldLikes = JSON.parse(localStorage.getItem("runflow_likes_v1") || "null");
+  const oldFeedback = JSON.parse(localStorage.getItem("runflow_feedback_v1") || "null");
+  if (oldResults && oldResults.length && !BATCHES.length) {
+    const b = {
+      id: "legacy-" + Date.now(),
+      name: "Imported run",
+      created_at: new Date().toISOString(),
+      created_by: JUDGE_NAME || "(unknown)",
+      results: oldResults,
+      likes: oldLikes || {},
+      feedback: oldFeedback || {},
+      gen_state: { status: "done", total: oldResults.length, done: oldResults.length, error: null },
+    };
+    BATCHES.push(b);
+    CURRENT_BATCH_ID = b.id;
+    saveBatches(); saveCurrentBatch();
+  }
+  // Clear out the legacy keys so we don't keep migrating
+  ["runflow_results_v1","runflow_likes_v1","runflow_feedback_v1","runflow_gen_state_v1"].forEach(k => localStorage.removeItem(k));
+})();
+
+/* In-memory abort flag — resets on reload. Stops local polling. Server-side
+   workflow keeps going since there's no public cancel endpoint. */
+let STOP_REQUESTED = false;
+function requestStop() { STOP_REQUESTED = true; }
+function clearStop() { STOP_REQUESTED = false; }
+function isStopRequested() { return STOP_REQUESTED; }
+
+const MAX_ANGLES = 2;
+function ensureAngleSlots(inputs) {
+  inputs.cuts = (inputs.cuts || []).slice(0, MAX_ANGLES);
+  while (inputs.cuts.length < MAX_ANGLES) {
+    inputs.cuts.push({ label: "", headline: "", subhead: "", cta: "" });
+  }
+  return inputs;
+}
+
+/* ---- Angles (audience cuts, collapsible pills) ---- */
+function cutPreview(c) {
+  if (c.label) return `<strong>${escHtml(c.label)}</strong>`;
+  return `<span class="empty">empty — click to fill</span>`;
+}
+function renderCuts() {
+  if (!document.getElementById("cutsList")) return; // form removed in asset-validation view
+  const inputs = ensureAngleSlots(getInputs());
+  setInputs(inputs);
+  const html = inputs.cuts.map((c, i) => `
+    <details class="cut-card" ${i === 0 ? "open" : ""}>
+      <summary>
+        <span class="cut-pill-label">Angle ${i+1}</span>
+        <span class="cut-pill-preview">${cutPreview(c)}</span>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </summary>
+      <div class="cut-body">
+        <div class="row-2">
+          <div class="field">
+            <label class="field-label">Angle</label>
+            <input type="text" data-cut="${i}" data-key="label" value="${escAttr(c.label)}" />
+          </div>
+          <div class="field">
+            <label class="field-label">CTA</label>
+            <input type="text" data-cut="${i}" data-key="cta" value="${escAttr(c.cta)}" />
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Headline</label>
+          <input type="text" data-cut="${i}" data-key="headline" value="${escAttr(c.headline)}" />
+        </div>
+        <div class="field">
+          <label class="field-label">Subhead</label>
+          <input type="text" data-cut="${i}" data-key="subhead" value="${escAttr(c.subhead)}" />
+        </div>
+      </div>
+    </details>
+  `).join("");
+  document.getElementById("cutsList").innerHTML = html;
+  // Re-apply admin gating since we just injected new <input> elements that need readonly
+  if (typeof applyAdminGating === "function") applyAdminGating();
+  // Live-update each pill's summary preview as the user types
+  document.querySelectorAll("#cutsList .cut-card").forEach(card => {
+    card.addEventListener("input", (e) => {
+      const idx = parseInt(e.target.dataset.cut, 10);
+      if (Number.isNaN(idx)) return;
+      const key = e.target.dataset.key;
+      const cuts = JSON.parse(localStorage.getItem("runflow_inputs_c01_v2") || JSON.stringify(SAMPLE)).cuts || [];
+      cuts[idx] = cuts[idx] || {};
+      // Read the latest values directly from the DOM so we don't lose other edits
+      Array.from(card.querySelectorAll("input")).forEach(inp => { cuts[idx][inp.dataset.key] = inp.value; });
+      const preview = card.querySelector(".cut-pill-preview");
+      if (preview) preview.innerHTML = cutPreview(cuts[idx]);
+    });
+  });
+}
+
+/* ---- Inputs helpers ---- */
+function getInputs() {
+  return JSON.parse(localStorage.getItem("runflow_inputs_c01_v2") || JSON.stringify(SAMPLE));
+}
+function setInputs(v) {
+  localStorage.setItem("runflow_inputs_c01_v2", JSON.stringify(v));
+}
+
+/* ---- Step 1 modes: "preset" (judge picks one of N curated briefs) vs
+   "custom" (judge uploads their own assets). Preset mode is the default. */
+let STEP1_MODE = localStorage.getItem("runflow_step1_mode_v1") || "preset";
+let ACTIVE_PRESET_ID = localStorage.getItem("runflow_active_preset_v1") || (PRESETS[0]?.id || "");
+
+function setStep1Mode(mode) {
+  STEP1_MODE = mode;
+  localStorage.setItem("runflow_step1_mode_v1", mode);
+  renderStep1();
+}
+function applyPreset(presetId) {
+  const p = PRESETS.find(x => x.id === presetId);
+  if (!p) return;
+  ACTIVE_PRESET_ID = presetId;
+  localStorage.setItem("runflow_active_preset_v1", presetId);
+  // Form values
+  writeForm(p.data);
+  setInputs(p.data);
+  // Heroes + logo — overlay the preset's uploads onto the slots so the
+  // workflow has runflow_uris and the preview shows the preset thumbnail.
+  if (p.uploads) {
+    for (const slot of ["hero1", "hero2", "hero3", "brandLogo"]) {
+      if (p.uploads[slot]) UPLOADS[slot] = { ...p.uploads[slot] };
+      else delete UPLOADS[slot];
+      const el = document.getElementById(slot);
+      if (el) el.value = p.uploads[slot]?.runflow_uri || "";
+      renderUploadPreview(slot);
+    }
+    saveU();
+  }
+  // Pre-rendered batch: create or refresh a deterministic "preset-<id>" batch
+  // so the judge can rate the pre-rendered images without firing Generate.
+  if (Array.isArray(p.runs) && p.runs.length) {
+    const batchId = `preset-${p.id}`;
+    let existing = BATCHES.find(b => b.id === batchId);
+    const results = p.runs.map((r, idx) => ({
+      id: `${batchId}-${idx}`,
+      hero_idx: r.hero_idx, cut_idx: r.cut_idx, format: r.format,
+      image: r.local_image || r.image || null,
+      status: r.image || r.local_image ? "succeeded" : "failed",
+      cost: r.cost ?? null,
+      duration_ms: r.duration_ms ?? null,
+      prompt: r.prompt || null,
+      hero_url: r.hero_url || p.uploads?.[`hero${r.hero_idx}`]?.preview_url || null,
+    })).filter(r => !HIDDEN_TILES.has(r.id));
+    const payload = {
+      id: batchId,
+      name: `${p.name} · pre-rendered`,
+      created_at: new Date().toISOString(),
+      preset_id: p.id,
+      results,
+      likes: existing?.likes || {},
+      feedback: existing?.feedback || {},
+      gen_state: { status: "succeeded", total: results.length, done: results.filter(r => r.status === "succeeded").length, error: null },
+    };
+    if (existing) {
+      Object.assign(existing, { results, name: payload.name, preset_id: p.id, gen_state: payload.gen_state });
+    } else {
+      BATCHES.push(payload);
+    }
+    CURRENT_BATCH_ID = batchId;
+    saveBatches(); saveCurrentBatch();
+  }
+  renderCuts();
+  renderPresetChips();
+  renderAll();
+}
+function renderPresetChips() {
+  const wrap = document.getElementById("presetChips");
+  if (!wrap) return;
+  wrap.innerHTML = PRESETS.map(p =>
+    `<span class="chip ${p.id === ACTIVE_PRESET_ID ? "active" : ""}" data-preset="${p.id}">${escHtml(p.name)}</span>`
+  ).join("");
+  wrap.querySelectorAll(".chip").forEach(el => {
+    el.addEventListener("click", () => applyPreset(el.dataset.preset));
+  });
+}
+function renderStep1() {
+  const label = document.getElementById("step1Label");
+  const chips = document.getElementById("presetChips");
+  const toggle = document.getElementById("modeToggleBtn");
+  if (!label || !chips || !toggle) return;
+  if (STEP1_MODE === "preset") {
+    label.textContent = "Step 1: Choose a preset";
+    chips.style.display = "";
+    toggle.textContent = "＋ I want to test my own assets";
+    renderPresetChips();
+  } else {
+    label.textContent = "Step 1: Upload hero images";
+    chips.style.display = "none";
+    toggle.textContent = "↺ See preset instead";
+  }
+}
+function enterCustomMode() {
+  // Clear heroes, brand logo, brand kit + cuts back to a blank slate so the
+  // judge can upload fresh assets. Saved sets stay intact.
+  UPLOADS = {};
+  saveU();
+  ["hero1", "hero2", "hero3", "brandLogo"].forEach(slot => {
+    const hidden = document.getElementById(slot); if (hidden) hidden.value = "";
+    renderUploadPreview(slot);
+  });
+  const blank = { brandColor1: "#000000", brandColor2: "", brandFont: "", brandTone: "premium", cuts: [{ label: "", headline: "", subhead: "", cta: "" }, { label: "", headline: "", subhead: "", cta: "" }], formats: ["1:1", "9:16"] };
+  writeForm(blank);
+  setInputs(blank);
+  renderCuts();
+  ACTIVE_PRESET_ID = "";
+  localStorage.setItem("runflow_active_preset_v1", "");
+  setStep1Mode("custom");
+}
+function returnToPresetMode() {
+  setStep1Mode("preset");
+  const fallback = PRESETS[0];
+  if (fallback) applyPreset(fallback.id);
+}
+function readForm() {
+  const cuts = Array.from(document.querySelectorAll("#cutsList .cut-card")).map((c, i) => {
+    const labels = c.querySelectorAll("input");
+    const o = {};
+    labels.forEach(inp => { o[inp.dataset.key] = inp.value; });
+    return o;
+  });
+  return {
+    // hero1/2/3 + brandLogo come from UPLOADS only — no URL input exists for them
+    brandColor1: document.getElementById("brandColor1").value,
+    brandColor2: document.getElementById("brandColor2").value,
+    brandFont: document.getElementById("brandFont").value,
+    brandTone: document.getElementById("brandTone").value,
+    cuts,
+    formats: Array.from(document.querySelectorAll("#formatChips .chip.active")).map(c => c.dataset.fmt)
+  };
+}
+function writeForm(v) {
+  if (!document.getElementById("brandColor1")) return; // form removed in asset-validation view
+  document.getElementById("brandColor1").value = v.brandColor1 || "";
+  document.getElementById("brandColor2").value = v.brandColor2 || "";
+  document.getElementById("brandFont").value = v.brandFont || "";
+  document.getElementById("brandTone").value = v.brandTone || "";
+  document.getElementById("swatch1").style.background = v.brandColor1 || "#ccc";
+  document.getElementById("swatch2").style.background = v.brandColor2 || "#ccc";
+  Array.from(document.querySelectorAll("#formatChips .chip")).forEach(c => {
+    c.classList.toggle("active", (v.formats || []).includes(c.dataset.fmt));
+  });
+  renderCuts();
+}
+
+/* ---- Per-builder payload adapters ----
+   Each workflow has a different real schema (probed live, baked into
+   WORKFLOW_SCHEMA above). buildPayloadFor(s, heroUrl) translates the
+   shared UI inputs into whatever shape that workflow's endpoint accepts. */
+
+function urlOrUpload(slotId) {
+  // Heroes + brand logo are upload-only. Return the signed https URL
+  // (preview_url) rather than the runflow://assets/{id} URI.
+  //
+  // Why https not runflow://: some workflows (e.g. Burgstall's BSBrandKit
+  // custom node) do their own image fetch and don't resolve the runflow://
+  // scheme — they fail with "image not found". The signed Cloudflare R2
+  // URL is universally fetchable by any worker.
+  //
+  // The signed URL is valid for ~24h from upload, which covers a normal
+  // judging session. Fall back to runflow_uri if no preview_url is stored
+  // (shouldn't happen for fresh uploads, but defensive).
+  const up = UPLOADS[slotId];
+  return up?.preview_url || up?.runflow_uri || "";
+}
+
+function buildPayloadForNux(heroUrl, aspect, cut) {
+  const v = readForm();
+  const c = cut || v.cuts[0] || {};
+  const logo = urlOrUpload("brandLogo");
+  const promptLines = [
+    `Produce a brand-locked ad variant from the provided primary design reference.`,
+    c.headline ? `Headline text: "${c.headline}".` : "",
+    c.subhead ? `Subhead text: "${c.subhead}".` : "",
+    c.cta ? `Call to action: "${c.cta}".` : "",
+    c.label ? `Audience: ${c.label}.` : "",
+    v.brandColor1 ? `Primary brand color: ${v.brandColor1}.` : "",
+    v.brandColor2 ? `Secondary brand color: ${v.brandColor2}.` : "",
+    v.brandFont ? `Use the typography of: ${v.brandFont}.` : "",
+    v.brandTone ? `Visual tone: ${v.brandTone}.` : "",
+    logo ? `Place the provided logo in a prominent corner safe zone.` : "",
+    `Preserve the focal subject from the primary design reference. Avoid warped text or floating overlays.`
+  ].filter(Boolean);
+
+  // The workflow requires three reference fields, but mixing different heroes
+  // in one run causes the model to composite them together (e.g. all three
+  // perfume bottles in a single Chanel ad). Per the runflow-ad-creative skill,
+  // satisfy all three slots with the SAME hero — each (hero × angle × format)
+  // gets its own clean run.
+  return {
+    "prompt": promptLines.join(" "),
+    "aspect_ratio": aspect || "1:1",
+    "logo": logo,
+    "primary_design_ref": heroUrl,
+    "Aux Reference 1": heroUrl,
+    "Aux Reference 2": heroUrl
+  };
+}
+
+function isNonEmptyCut(c) {
+  return !!(c && (c.label || c.headline || c.subhead || c.cta));
+}
+
+/* All combinations to dispatch for one hero — non-empty cuts × selected formats. */
+function payloadsForHero(heroUrl) {
+  const v = readForm();
+  const formats = (v.formats && v.formats.length) ? v.formats : ["1:1"];
+  const cuts = (v.cuts || []).map((c, i) => ({ c, i })).filter(({ c }) => isNonEmptyCut(c));
+  if (!cuts.length) cuts.push({ c: v.cuts[0] || {}, i: 0 });
+  const out = [];
+  for (const { c, i } of cuts) {
+    for (const f of formats) {
+      out.push({ payload: buildPayloadForNux(heroUrl, f, c), cut_idx: i + 1, cut: c, format: f });
+    }
+  }
+  return out;
+}
+
+/* ---- Uploads (Runflow asset storage) ----
+   Runflow's asset tier only accepts png/jpeg/webp/gif. We auto-convert
+   anything else (AVIF, HEIC, BMP, TIFF…) to PNG client-side via canvas
+   so the user can drop any image. */
+const SUPPORTED_UPLOAD_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
+
+async function convertToPng(file) {
+  // createImageBitmap handles every format the browser can decode (AVIF in modern Chrome/Safari)
+  const bitmap = await createImageBitmap(file);
+  const canvas = document.createElement("canvas");
+  canvas.width = bitmap.width;
+  canvas.height = bitmap.height;
+  canvas.getContext("2d").drawImage(bitmap, 0, 0);
+  const blob = await new Promise((res, rej) => canvas.toBlob(b => b ? res(b) : rej(new Error("canvas.toBlob returned null")), "image/png"));
+  const baseName = file.name.replace(/\.[^.]+$/, "");
+  return new File([blob], `${baseName}.png`, { type: "image/png" });
+}
+
+async function handleUpload(slotId, file) {
+  if (!file) return;
+  const zone = document.getElementById(`${slotId}-zone`);
+  const previewEl = document.getElementById(`${slotId}-preview`);
+  if (!zone || !previewEl) return;
+  zone.classList.add("uploading");
+  zone.classList.add("filled");
+
+  // Convert unsupported formats client-side
+  let toUpload = file;
+  if (!SUPPORTED_UPLOAD_TYPES.has(file.type)) {
+    previewEl.innerHTML = `<div class="hero-spinner-overlay"><span class="spinner"></span><span>converting ${escHtml(file.type || "unknown")} → png…</span></div>`;
+    try {
+      toUpload = await convertToPng(file);
+    } catch (err) {
+      zone.classList.remove("uploading"); zone.classList.remove("filled");
+      previewEl.innerHTML = "";
+      alert(`Can't read ${file.name} (${file.type || "unknown type"}). The browser couldn't decode it. Re-export as PNG, JPEG, WebP, or GIF.`);
+      return;
+    }
+  }
+  previewEl.innerHTML = `<div class="hero-spinner-overlay"><span class="spinner"></span><span>uploading ${escHtml(toUpload.name)}…</span></div>`;
+
+  try {
+    const presign = await apiPost("api/upload-create", {
+      filename: toUpload.name, mime_type: toUpload.type || "application/octet-stream", size_bytes: toUpload.size
+    });
+    if (presign.status >= 300 || !presign.body?.upload_url) throw new Error(presign.body?.message || "presign failed");
+    const { asset_id, upload_url } = presign.body;
+
+    const putResp = await fetch(upload_url, { method: "PUT", body: toUpload, headers: { "Content-Type": toUpload.type || "application/octet-stream" } });
+    if (!putResp.ok) throw new Error(`PUT to storage failed (${putResp.status})`);
+
+    const confirmed = await apiPost(`api/upload-confirm/${asset_id}`, {});
+    if (confirmed.status >= 300 || !confirmed.body?.url) throw new Error(confirmed.body?.message || "confirm failed");
+
+    const converted = toUpload !== file;
+    UPLOADS[slotId] = {
+      asset_id,
+      runflow_uri: `runflow://assets/${asset_id}`,
+      preview_url: confirmed.body.url,
+      filename: file.name + (converted ? " (→ png)" : "")
+    };
+    saveU();
+    document.getElementById(slotId).value = `runflow://assets/${asset_id}`;
+    zone.classList.remove("uploading");
+    renderUploadPreview(slotId);
+  } catch (err) {
+    zone.classList.remove("uploading");
+    zone.classList.remove("filled");
+    previewEl.innerHTML = "";
+    alert(`Upload failed for ${slotId}: ${err.message}`);
+  }
+}
+function clearUpload(slotId) {
+  event.stopPropagation();
+  delete UPLOADS[slotId];
+  saveU();
+  const inp = document.getElementById(slotId); if (inp) inp.value = "";
+  renderUploadPreview(slotId);
+}
+function renderUploadPreview(slotId) {
+  const zone = document.getElementById(`${slotId}-zone`);
+  const el = document.getElementById(`${slotId}-preview`);
+  if (!zone || !el) return;
+  const up = UPLOADS[slotId];
+  if (!up) { zone.classList.remove("filled"); el.innerHTML = ""; return; }
+  zone.classList.add("filled");
+  el.innerHTML = `
+    <img src="${escAttr(up.preview_url)}" alt="${escAttr(up.filename)}" />
+    <div class="overlay">
+      <span class="name">${escHtml(up.filename)}</span>
+      <button class="clear-btn" onclick="clearUpload('${slotId}')" title="Remove">×</button>
+    </div>
+  `;
+  const fileInp = document.getElementById(slotId);
+  if (fileInp) fileInp.value = up.runflow_uri;
+}
+
+/* ---- API calls ---- */
+async function apiPost(path, body) {
+  const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const j = await r.json().catch(() => ({}));
+  return { status: r.status, body: j };
+}
+async function apiGet(path) {
+  const r = await fetch(path);
+  const j = await r.json().catch(() => ({}));
+  return { status: r.status, body: j };
+}
+
+function extractImageUrls(output) {
+  if (!output) return [];
+  const urls = new Set();
+  // Any object key whose VALUE is a URL we should treat as an image URL.
+  const URL_KEYS = new Set([
+    "url", "signed_url", "public_url", "image_url", "output_url",
+    "asset_url", "cdn_url", "download_url", "src", "href", "image",
+  ]);
+  const looksImage = (s) => {
+    if (typeof s !== "string") return false;
+    if (!/^https?:\/\//.test(s)) return false;
+    // Reject obvious non-images
+    if (/\.(html?|json|txt|pdf|mp4|mov|webm|mp3|wav)(\?|$)/i.test(s)) return false;
+    return true;
+  };
+  const walk = (v) => {
+    if (v == null) return;
+    if (typeof v === "string") {
+      // Top-level strings: accept any http(s) URL that doesn't look like a doc.
+      // Runflow signed URLs frequently have no file extension, so we can't gate
+      // on extension alone — we used to and that lost images.
+      if (looksImage(v)) urls.add(v);
+      return;
+    }
+    if (Array.isArray(v)) { v.forEach(walk); return; }
+    if (typeof v === "object") {
+      for (const [k, val] of Object.entries(v)) {
+        if (URL_KEYS.has(k) && looksImage(val)) urls.add(val);
+        walk(val);
+      }
+    }
+  };
+  walk(output);
+  return Array.from(urls);
+}
+
+/* True if the failure message looks like a transient infrastructure error
+   that's worth retrying. "No worker in the fleet" comes from Runflow's
+   dispatcher when no GPU worker can take the job right now — workers
+   typically free up within seconds. */
+function isTransientFailure(msg) {
+  if (!msg) return false;
+  const m = String(msg).toLowerCase();
+  return (
+    m.includes("no worker in the fleet") ||
+    m.includes("worker pool is full") ||
+    m.includes("queue is full") ||
+    m.includes("temporarily unavailable") ||
+    m.includes("rate limit") ||
+    m.includes("upstream generation failed")
+  );
+}
+
+/* ---- Generation: one shot from the form, parallel dispatch through Nux ---- */
+const RUN_CONCURRENCY = 4;
+const MAX_ATTEMPTS = 3;
+const BACKOFF_MS = [30000, 60000, 120000];
+
+/* Stop signals are now per-batch so clicking Stop while viewing a different
+   batch doesn't kill the wrong worker, and starting batch B doesn't clear
+   batch A's stop signal. */
+const STOP_BATCHES = new Set();
+function requestStopForBatch(batchId) { if (batchId) STOP_BATCHES.add(batchId); }
+function isStopRequestedFor(batchId) { return batchId ? STOP_BATCHES.has(batchId) : false; }
+function clearStopForBatch(batchId) { if (batchId) STOP_BATCHES.delete(batchId); }
+// Legacy single-flag helpers — kept as no-ops so older callsites compile but
+// they no longer leak signals across batches.
+function requestStop() {}
+function isStopRequested() { return false; }
+function clearStop() {}
+
+/* Poll an already-dispatched runId until terminal. Used by both fresh dispatch
+   and on-reload resume. Writes nothing — caller persists the result. */
+/* Single-shot poll used by recovery flows. The long pollRun loop is fine for
+   freshly-dispatched runs (they take minutes), but for recovery the server has
+   either already finished the run or has lost it — looping for 30 minutes per
+   tile just hangs the page. One immediate GET, take what we get, move on. */
+async function pollRunOnce(runId, t0) {
+  const got = await apiGet(`api/run/${runId}`);
+  const run = got.body && got.body.status_code ? got.body : null;
+  const elapsed = performance.now() - t0;
+  if (!run) {
+    return { status: "failed", error: `Runflow returned ${got.status || "no body"} for run ${runId}`, duration_ms: elapsed, cost: null, images: [], raw_output: got.body, run_id: runId };
+  }
+  const terminal = new Set(["succeeded","failed","cancelled","partial_succeeded"]);
+  if (!terminal.has(run.status_code)) {
+    // Still running server-side. Don't write "running" back — the local worker
+    // is done, so the tile would just sit there frozen. Mark stopped with the
+    // current Runflow state, the recover button stays available for next time.
+    return { status: "stopped", error: `still ${run.status_code} on Runflow — try recover again in a minute`, duration_ms: elapsed, cost: null, images: [], raw_output: run.output, run_id: runId };
+  }
+  const images = extractImageUrls(run.output);
+  if (!images.length) {
+    try { console.warn("[recover] no image URL in run.output", { runId, output: run.output }); } catch (_) {}
+  }
+  return {
+    status: run.status_code,
+    error: run.failure_message || (images.length ? null : "succeeded but no image URL in output"),
+    duration_ms: run.duration_ms || elapsed,
+    cost: run.cost ? parseFloat(run.cost) : null,
+    images,
+    raw_output: run.output,
+    run_id: runId,
+  };
+}
+
+async function pollRun(runId, batchId, t0) {
+  const terminal = new Set(["succeeded","failed","cancelled","partial_succeeded"]);
+  let run = null;
+  for (let i = 0; i < 600; i++) {
+    // First poll fires immediately so the user sees status flip from "running"
+    // to whatever Runflow reports right away. Subsequent polls back off to 3s.
+    if (i > 0) await new Promise(r => setTimeout(r, 3000));
+    if (isStopRequestedFor(batchId)) return { status: "stopped", error: "Stopped by user.", duration_ms: performance.now() - t0, cost: null, images: [], run_id: runId };
+    const got = await apiGet(`api/run/${runId}`);
+    if (got.body?.status_code) run = got.body;
+    if (run && terminal.has(run.status_code)) break;
+  }
+  const elapsed = performance.now() - t0;
+  if (!run) return { status: "timeout", error: "polling timed out after 30m", duration_ms: elapsed, cost: null, images: [], run_id: runId };
+  const images = extractImageUrls(run.output);
+  if (!images.length) {
+    // Log the raw output once so we can debug schemas we haven't seen yet.
+    try { console.warn("[recover] no image URL in run.output", { runId, output: run.output }); } catch (_) {}
+  }
+  return {
+    status: run.status_code,
+    error: run.failure_message || null,
+    duration_ms: run.duration_ms || elapsed,
+    cost: run.cost ? parseFloat(run.cost) : null,
+    images,
+    raw_output: run.output, // keep around for debugging when extractor finds nothing
+    run_id: runId,
+  };
+}
+
+/* Dispatch + persist run_id IMMEDIATELY so a page refresh can resume. */
+async function dispatchOneAttempt(payload, t0, batchId, resultIdx) {
+  const created = await apiPost("api/run", { endpoint_url: WORKFLOW_ENDPOINT, input: payload });
+  if (created.status >= 300 || !created.body?.run_id) {
+    return { status: "failed", error: created.body?.message || created.body?.detail || JSON.stringify(created.body).slice(0, 300), duration_ms: 0, cost: null, images: [] };
+  }
+  const runId = created.body.run_id;
+  // Persist run_id to the batch's result so we can resume after refresh
+  const b = BATCHES.find(x => x.id === batchId);
+  if (b && b.results[resultIdx]) {
+    b.results[resultIdx].run_id = runId;
+    saveBatches();
+  }
+  return await pollRun(runId, batchId, t0);
+}
+
+async function dispatchWithRetry(payload, batchId, resultIdx) {
+  const t0 = performance.now();
+  let attempt = 0;
+  let result = null;
+  while (attempt < MAX_ATTEMPTS) {
+    if (isStopRequestedFor(batchId)) return { status: "stopped", error: "Stopped before dispatch.", duration_ms: performance.now() - t0, cost: null, images: [] };
+    result = await dispatchOneAttempt(payload, t0, batchId, resultIdx);
+    const transient = (result.status === "failed" || result.status === "cancelled") && isTransientFailure(result.error);
+    if (!transient) break;
+    attempt++;
+    if (attempt >= MAX_ATTEMPTS) break;
+    const wait = BACKOFF_MS[attempt - 1] || 60000;
+    const until = performance.now() + wait;
+    while (performance.now() < until) {
+      if (isStopRequestedFor(batchId)) return { ...result, status: "stopped" };
+      await new Promise(r => setTimeout(r, 2000));
+    }
+  }
+  return result;
+}
+
+async function generate() {
+  if (!IS_ADMIN) { alert("Only admins can generate new runs. Ask a Runflow admin to enable this in the welcome modal."); return; }
+  setInputs(readForm());
+  const heroes = [
+    urlOrUpload("hero1"),
+    urlOrUpload("hero2"),
+    urlOrUpload("hero3"),
+  ].filter(Boolean);
+  if (!heroes.length) { alert("Upload at least one hero image at the top."); return; }
+
+  const jobs = [];
+  for (let h = 0; h < heroes.length; h++) {
+    for (const p of payloadsForHero(heroes[h])) {
+      jobs.push({
+        id: `g${Date.now()}-h${h+1}-c${p.cut_idx}-${p.format.replace(':','x')}-${jobs.length}`,
+        hero_idx: h + 1,
+        cut_idx: p.cut_idx,
+        format: p.format,
+        payload: p.payload,
+        status: "pending",
+      });
+    }
+  }
+
+  // Create a NEW batch for this generation — past batches are preserved as pills
+  const inputs = readForm();
+  const briefHint = (inputs.cuts?.[0]?.headline || "Untitled").slice(0, 40);
+  const newBatch = {
+    id: "batch-" + Date.now(),
+    name: `${briefHint} · ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`,
+    created_at: new Date().toISOString(),
+    created_by: JUDGE_NAME || "(unknown)",
+    inputs: inputs,
+    results: jobs.map(j => ({ ...j, image: null, cost: null, duration_ms: null, error: null })),
+    likes: {},
+    feedback: {},
+    gen_state: { status: "running", total: jobs.length, done: 0, error: null },
+  };
+  BATCHES.push(newBatch);
+  CURRENT_BATCH_ID = newBatch.id;
+  saveBatches(); saveCurrentBatch();
+  clearStopForBatch(newBatch.id);
+  renderAll();
+
+  // CAPTURE the batch reference. The user can switch to a different batch
+  // pill while this is running; without this capture the worker would write
+  // through the live RESULTS proxy and corrupt whatever batch is visible.
+  const targetBatch = newBatch;
+  const targetBatchId = newBatch.id;
+
+  let cursor = 0;
+  async function worker() {
+    while (cursor < jobs.length) {
+      if (isStopRequestedFor(targetBatchId)) return;
+      const idx = cursor++;
+      const job = jobs[idx];
+      targetBatch.results[idx].status = "running";
+      targetBatch.results[idx].started_at = Date.now();
+      saveBatches();
+      if (CURRENT_BATCH_ID === targetBatchId) renderResults();
+      const res = await dispatchWithRetry(job.payload, targetBatchId, idx);
+      targetBatch.results[idx] = {
+        ...targetBatch.results[idx],
+        status: res.status,
+        image: res.images?.[0] || null,
+        cost: res.cost,
+        duration_ms: res.duration_ms,
+        error: res.error,
+        run_id: res.run_id,
+      };
+      targetBatch.gen_state.done = targetBatch.results.filter(r => r.status !== "pending" && r.status !== "running").length;
+      saveBatches();
+      if (CURRENT_BATCH_ID === targetBatchId) { renderResults(); renderBatchPills(); }
+      else { renderBatchPills(); } // keep the pill stats fresh even when looking elsewhere
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(RUN_CONCURRENCY, jobs.length) }, () => worker()));
+
+  targetBatch.gen_state.status = isStopRequestedFor(targetBatchId) ? "stopped" : "done";
+  clearStopForBatch(targetBatchId);
+  saveBatches();
+  renderAll();
+}
+
+function stopGeneration() {
+  // Stop whichever batch is currently running — that may NOT be the batch
+  // the user is viewing right now. Signal stops for every batch in "running"
+  // state so workers bail on their next 3s tick.
+  const running = BATCHES.filter(b => b.gen_state?.status === "running");
+  if (!running.length) {
+    // No actively-polling worker; just clean up any stale "running" tiles in
+    // the currently-viewed batch (orphan from a prior reload).
+    const b = currentBatch();
+    if (b && b.gen_state?.status === "running") {
+      b.gen_state.status = "stopped";
+      b.results.forEach(r => { if (r.status === "running" || r.status === "pending") { r.status = "stopped"; r.error = "Stopped by user"; } });
+      saveBatches();
+    }
+    renderAll();
+    return;
+  }
+  running.forEach(b => {
+    requestStopForBatch(b.id);
+    b.gen_state.status = "stopped";
+    b.results.forEach(r => { if (r.status === "running" || r.status === "pending") { r.status = "stopped"; r.error = "Stopped by user"; } });
+  });
+  saveBatches();
+  renderAll();
+}
+
+/* ---- Rendering ---- */
+function escHtml(s) {
+  if (s == null) return "";
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function escAttr(s) {
+  if (s == null) return "";
+  return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+}
+
+function renderAll() {
+  renderStep1();
+  renderBatchPills();
+  renderGenerateControls();
+  renderResults();
+  renderScoreSummary();
+  applyAdminGating();
+}
+
+function renderBatchPills() {
+  const el = document.getElementById("batchPills");
+  if (!el) return;
+  if (!BATCHES.length) { el.innerHTML = ""; return; }
+  const pills = BATCHES.slice().reverse().map(b => {
+    const succ = (b.results || []).filter(r => r.status === "succeeded").length;
+    const likes = Object.values(b.likes || {}).filter(v => v === "like").length;
+    const dis = Object.values(b.likes || {}).filter(v => v === "dislike").length;
+    const active = b.id === CURRENT_BATCH_ID ? "active" : "";
+    return `<button class="batch-pill ${active}" onclick="switchBatch('${b.id}')" title="${escAttr(b.name)} · ${new Date(b.created_at).toLocaleString()}">
+      <span class="batch-pill-name">${escHtml(b.name)}</span>
+      <span class="batch-pill-stats">${succ} imgs · ${likes}👍 ${dis}👎</span>
+      ${IS_ADMIN ? `<span class="batch-pill-del" onclick="event.stopPropagation(); deleteBatch('${b.id}')" title="Delete this batch">×</span>` : ""}
+    </button>`;
+  }).join("");
+  el.innerHTML = pills;
+}
+function switchBatch(id) {
+  CURRENT_BATCH_ID = id;
+  saveCurrentBatch();
+  renderAll();
+}
+function deleteBatch(id) {
+  if (!confirm("Delete this batch and its ratings?")) return;
+  BATCHES = BATCHES.filter(b => b.id !== id);
+  if (CURRENT_BATCH_ID === id) CURRENT_BATCH_ID = BATCHES.length ? BATCHES[BATCHES.length - 1].id : "";
+  saveBatches(); saveCurrentBatch();
+  renderAll();
+}
+
+function applyAdminGating() {
+  const isAdmin = IS_ADMIN;
+  // Hide internal-cost UI from judges. Cost is our infra cost, not theirs —
+  // they shouldn't think it's a bill they're being shown.
+  document.querySelectorAll(".admin-cost").forEach(el => {
+    el.style.display = isAdmin ? "" : "none";
+  });
+  // Re-render pills + tiles so admin × buttons appear/disappear.
+  renderBatchPills();
+  renderResults();
+}
+
+function statusPill(status) {
+  if (!status || status === "idle") return "";
+  const cls = status === "succeeded" || status === "done" || status === "partial_succeeded" ? "status-succeeded"
+    : (status === "failed" || status === "timeout") ? "status-failed"
+    : status === "stopped" ? "status-stopped"
+    : "status-running";
+  return `<span class="status-pill ${cls}">${status}</span>`;
+}
+
+function renderGenerateControls() {
+  const btn = document.getElementById("generateBtn");
+  const pill = document.getElementById("genStatusPill");
+  const prog = document.getElementById("genProgress");
+  const cost = document.getElementById("genTotalCost");
+  const rt = document.getElementById("genAvgRuntime");
+  const recoverBtn = document.getElementById("recoverBtn");
+  if (!btn || !pill) return;
+
+  // Recover button: admin only, and only when at least one tile in this batch
+  // is in a recoverable state (stopped/failed/timeout/cancelled).
+  if (recoverBtn) {
+    const RECOVERABLE = new Set(["stopped", "failed", "timeout", "cancelled"]);
+    const recoverableCount = RESULTS.filter(r => RECOVERABLE.has(r.status) && (r.run_id || r.payload)).length;
+    if (IS_ADMIN && recoverableCount > 0 && GEN_STATE.status !== "running") {
+      recoverBtn.style.display = "";
+      recoverBtn.innerHTML = `↻ Recover stopped (${recoverableCount})`;
+      recoverBtn.onclick = recoverAllInBatch;
+    } else {
+      recoverBtn.style.display = "none";
+    }
+  }
+
+  if (GEN_STATE.status === "running") {
+    btn.className = "btn btn-stop";
+    btn.innerHTML = "■ Stop";
+    btn.onclick = stopGeneration;
+    pill.innerHTML = statusPill("running");
+    prog.textContent = `${GEN_STATE.done}/${GEN_STATE.total} done · ${RUN_CONCURRENCY} parallel`;
+  } else {
+    btn.className = "btn btn-primary";
+    btn.innerHTML = RESULTS.length ? "Generate again" : "Generate";
+    btn.onclick = generate;
+    pill.innerHTML = GEN_STATE.status === "done" ? statusPill("done") : GEN_STATE.status === "stopped" ? statusPill("stopped") : "";
+    prog.textContent = RESULTS.length ? `${RESULTS.filter(r => r.status === "succeeded").length}/${RESULTS.length} succeeded` : "";
+  }
+
+  const done = RESULTS.filter(r => r.cost != null);
+  const avgDur = RESULTS.filter(r => r.duration_ms);
+  const totalCost = done.reduce((a, r) => a + r.cost, 0);
+  if (done.length) {
+    cost.textContent = `$${totalCost.toFixed(3)}`;
+    cost.classList.remove("placeholder");
+  } else {
+    cost.textContent = "—"; cost.classList.add("placeholder");
+  }
+  if (avgDur.length) {
+    rt.textContent = `${(avgDur.reduce((a, r) => a + r.duration_ms, 0) / avgDur.length / 1000).toFixed(1)}s`;
+    rt.classList.remove("placeholder");
+  } else {
+    rt.textContent = "—"; rt.classList.add("placeholder");
+  }
+}
+
+function renderResults() {
+  renderGenerateControls();
+  const grid = document.getElementById("resultsGrid");
+  if (!grid) return;
+  if (!RESULTS.length) {
+    grid.innerHTML = `<div class="grid-empty">No assets loaded. Generate a set in your Claude Code session, then open the validation link it hands you.</div>`;
+    return;
+  }
+  grid.innerHTML = RESULTS.map((r, i) => renderTile(r, i)).join("");
+}
+
+/* Tick the elapsed-time counter on running tiles every 2s so the user can see
+   the run is still progressing. We only patch the inner text of running tiles
+   rather than re-rendering the whole grid (that would tear down DOM hover
+   state and force layout). */
+setInterval(() => {
+  const grid = document.getElementById("resultsGrid");
+  if (!grid) return;
+  const running = RESULTS.map((r, i) => ({ r, i })).filter(({ r }) => r.status === "running");
+  if (!running.length) return;
+  const tiles = grid.querySelectorAll(".tile-pending .mono");
+  let cursor = 0;
+  running.forEach(({ r }) => {
+    if (cursor >= tiles.length) return;
+    const node = tiles[cursor++];
+    if (!node || !node.textContent.startsWith("running")) return;
+    const elapsed = r.started_at ? Math.max(0, Math.floor((Date.now() - r.started_at) / 1000)) : 0;
+    node.textContent = `running… ${elapsed}s`;
+  });
+}, 2000);
+
+function renderTile(r, idx) {
+  if (r.status === "pending") {
+    return `<div class="tile-pending"><span class="mono">queued</span></div>`;
+  }
+  if (r.status === "running") {
+    const elapsed = r.started_at ? Math.max(0, Math.floor((Date.now() - r.started_at) / 1000)) : 0;
+    const slow = elapsed > 120 ? '<br/><span style="color:#b45309;font-size:10px;">unusually slow — Runflow may be queued</span>' : "";
+    return `<div class="tile-pending"><span class="spinner"></span><span class="mono">running… ${elapsed}s</span>${slow}</div>`;
+  }
+  if (r.status === "failed" || r.status === "timeout" || r.status === "stopped" || r.status === "cancelled") {
+    const adminDel = IS_ADMIN ? `<button class="tile-del" onclick="event.stopPropagation(); deleteResult('${r.id}')" title="Delete this tile (admin)">×</button>` : "";
+    const canRecover = IS_ADMIN && r.run_id;
+    const canRedispatch = IS_ADMIN && !r.run_id && r.payload;
+    const recoverBtn = canRecover
+      ? `<button class="tile-recover" onclick="event.stopPropagation(); recoverTile('${r.id}')" title="Re-poll Runflow for this run_id">↻ recover</button>`
+      : canRedispatch
+        ? `<button class="tile-recover" onclick="event.stopPropagation(); redispatchTile('${r.id}')" title="Re-dispatch this slot to Runflow">↻ retry</button>`
+        : "";
+    return `<div class="tile-failed">${adminDel}<strong>${r.status}</strong><br/>${escHtml((r.error || "").slice(0,200))}${recoverBtn}</div>`;
+  }
+  if (!r.image) {
+    const adminDel = IS_ADMIN ? `<button class="tile-del" onclick="event.stopPropagation(); deleteResult('${r.id}')" title="Delete this tile (admin)">×</button>` : "";
+    const recoverBtn = (IS_ADMIN && r.run_id) ? `<button class="tile-recover" onclick="event.stopPropagation(); recoverTile('${r.id}')" title="Re-poll Runflow for this run_id">↻ recover</button>` : "";
+    const rawPreview = (IS_ADMIN && r.raw_output)
+      ? `<details class="tile-raw"><summary>raw output</summary><pre>${escHtml(JSON.stringify(r.raw_output, null, 2).slice(0, 600))}</pre></details>`
+      : "";
+    return `<div class="tile-failed">${adminDel}<strong>${r.status}</strong><br/>no image URL in output${rawPreview}${recoverBtn}</div>`;
+  }
+  const rating = LIKES[r.id] || "";
+  const meta = (r.hero_idx != null) ? `H${r.hero_idx} · C${r.cut_idx} · ${r.format}` : (r.label || r.format || "");
+  const adminDel = IS_ADMIN ? `<button class="tile-del" onclick="event.stopPropagation(); deleteResult('${r.id}')" title="Delete this tile (admin)">×</button>` : "";
+  return `
+    <div class="result-tile ${rating ? "rated-"+rating : ""}" onclick="openLightbox(${idx})">
+      <img loading="lazy" src="${escAttr(r.image)}" alt="${meta}" />
+      <div class="tile-meta">${meta}</div>
+      ${adminDel}
+      <div class="tile-rate">
+        <button class="dislike ${rating === "dislike" ? "active" : ""}" onclick="event.stopPropagation(); rate('${r.id}','dislike')" title="Dislike">👎</button>
+        <button class="like ${rating === "like" ? "active" : ""}" onclick="event.stopPropagation(); rate('${r.id}','like')" title="Like">👍</button>
+      </div>
+    </div>`;
+}
+
+function renderScoreSummary() {
+  const el = document.getElementById("scoreSummary");
+  const btn = document.getElementById("submitSlackBtn");
+  const scored = RESULTS.filter(r => r.status === "succeeded" && r.image);
+  const likes = scored.filter(r => LIKES[r.id] === "like").length;
+  const dislikes = scored.filter(r => LIKES[r.id] === "dislike").length;
+  const rated = likes + dislikes;
+  const pending = scored.length - rated;
+  if (el) {
+    if (!scored.length) {
+      el.innerHTML = `No ratings yet.`;
+    } else {
+      el.innerHTML = `<strong style="color: var(--success);">${likes} liked</strong>  ·  <strong style="color: var(--error);">${dislikes} disliked</strong>  ·  <span style="color: var(--muted);">${pending} unrated</span>  ·  total ${scored.length}`;
+    }
+  }
+  if (btn) {
+    btn.textContent = `Validate for production (${rated} / ${scored.length})`;
+    btn.disabled = !scored.length || pending > 0;
+    btn.title = btn.disabled
+      ? (scored.length ? `Rate the remaining ${pending} image${pending === 1 ? "" : "s"} to submit` : "No generated variants to rate yet")
+      : "";
+  }
+}
+
+function rate(id, value) {
+  if (LIKES[id] === value) {
+    // toggle off
+    delete LIKES[id];
+    delete FEEDBACK[id];
+    saveLikes(); saveFeedback();
+    renderResults(); renderScoreSummary();
+    if (LIGHTBOX_IDX != null) updateLightboxRateButtons();
+    return;
+  }
+  LIKES[id] = value;
+  saveLikes();
+  renderResults();
+  renderScoreSummary();
+  if (LIGHTBOX_IDX != null) updateLightboxRateButtons();
+  // Prompt for free-text feedback on both like and dislike (skippable)
+  openFeedbackModal(id, value);
+}
+
+/* ---- Modals ---- */
+function openNameModal() {
+  const overlay = document.getElementById("nameModal");
+  if (!overlay) return; // modal removed in asset-validation view
+  document.getElementById("judgeNameInput").value = JUDGE_NAME || "";
+  document.getElementById("judgeCompanyInput").value = JUDGE_COMPANY || "";
+  document.getElementById("judgePasswordInput").value = "";
+  overlay.classList.add("open");
+  setTimeout(() => document.getElementById("judgeNameInput").focus(), 50);
+}
+function closeNameModal() {
+  document.getElementById("nameModal").classList.remove("open");
+}
+function setJudgeIdentity(name, company, password) {
+  JUDGE_NAME = (name || "").trim();
+  JUDGE_COMPANY = (company || "").trim();
+  // Password gates cost visibility + admin tile actions, not the input form.
+  IS_ADMIN = ADMIN_PASSWORDS.includes((password || "").trim());
+  // Persist on a flag so we can keep the modal closed for returning users.
+  if (VALID_PASSWORDS.includes((password || "").trim())) {
+    localStorage.setItem("runflow_unlocked_v1", "true");
+  }
+  saveJudgeName(); saveJudgeCompany(); saveAdmin();
+  renderJudgeTag();
+  applyAdminGating();
+}
+function renderJudgeTag() {
+  const el = document.getElementById("judgeNameTag");
+  if (!el) return;
+  if (!JUDGE_NAME) { el.innerHTML = ""; return; }
+  const role = IS_ADMIN ? "admin" : "judge";
+  el.innerHTML = `<span class="judge-tag">${role}: ${escHtml(JUDGE_NAME)}<span class="change-link" onclick="openNameModal()">change</span></span>`;
+}
+
+let FEEDBACK_TARGET = null;
+function openFeedbackModal(resultId, rating) {
+  FEEDBACK_TARGET = resultId;
+  const overlay = document.getElementById("feedbackModal");
+  const ta = document.getElementById("feedbackText");
+  const title = document.getElementById("feedbackTitle");
+  const body = document.getElementById("feedbackBody");
+  const value = rating || LIKES[resultId];
+  if (value === "like") {
+    title.textContent = "What's great about it?";
+    body.textContent = "What stood out — brand fit, composition, copy, the way it pairs with the hero? Anything you'd reuse on your own brand.";
+    ta.placeholder = "A line or two is enough — or skip.";
+  } else {
+    title.textContent = "What's off?";
+    body.textContent = "Tell us why you wouldn't run this ad. Anything specific — wrong brand colors, bad text, awkward composition, doesn't match the hero?";
+    ta.placeholder = "A line or two is enough…";
+  }
+  ta.value = FEEDBACK[resultId] || "";
+  overlay.classList.add("open");
+  setTimeout(() => ta.focus(), 50);
+}
+function closeFeedbackModal() {
+  document.getElementById("feedbackModal").classList.remove("open");
+  FEEDBACK_TARGET = null;
+}
+function advanceLightboxIfOpen() {
+  if (LIGHTBOX_IDX == null) return;
+  const visible = visibleResultIndices();
+  if (visible.length <= 1) return;
+  const pos = visible.indexOf(LIGHTBOX_IDX);
+  // Stop on the last image instead of wrapping to the start.
+  if (pos < 0 || pos >= visible.length - 1) return;
+  lightboxNav(1);
+}
+function saveCurrentFeedback() {
+  if (!FEEDBACK_TARGET) return;
+  const text = document.getElementById("feedbackText").value.trim();
+  if (text) FEEDBACK[FEEDBACK_TARGET] = text;
+  else delete FEEDBACK[FEEDBACK_TARGET];
+  saveFeedback();
+  closeFeedbackModal();
+  renderResults();
+  renderScoreSummary();
+  advanceLightboxIfOpen();
+  maybeOpenConfirmSubmitModal();
+}
+function skipCurrentFeedback() {
+  closeFeedbackModal();
+  advanceLightboxIfOpen();
+  maybeOpenConfirmSubmitModal();
+}
+
+/* Open the confirm-submit modal the first time the user reaches a fully-rated
+   state. If they unrate and re-rate, we let it open again. */
+function maybeOpenConfirmSubmitModal() {
+  const scored = RESULTS.filter(r => r.status === "succeeded" && r.image);
+  if (!scored.length) return;
+  const rated = scored.filter(r => LIKES[r.id]).length;
+  if (rated < scored.length) return;
+  const likes = scored.filter(r => LIKES[r.id] === "like").length;
+  const dislikes = scored.length - likes;
+  const stats = document.getElementById("confirmSubmitStats");
+  if (stats) {
+    stats.innerHTML = `
+      <div><div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em;">Liked</div><div style="font-size: 28px; font-weight: 700; color: var(--success);">${likes}</div></div>
+      <div><div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em;">Disliked</div><div style="font-size: 28px; font-weight: 700; color: var(--error);">${dislikes}</div></div>
+      <div><div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em;">Total</div><div style="font-size: 28px; font-weight: 700; color: var(--ink);">${scored.length}</div></div>
+    `;
+  }
+  document.getElementById("confirmSubmitModal").classList.add("open");
+}
+function closeConfirmSubmitModal() {
+  document.getElementById("confirmSubmitModal").classList.remove("open");
+}
+
+/* ---- Validate for production ----
+   v1 hands the approved picks back to the Claude session via copy-paste (no
+   backend). The "real" loop (page POSTs the selection, the agent polls) is the
+   next step when we wire this into the Runflow app. */
+function validateForProduction() {
+  const scored = RESULTS.filter(r => r.status === "succeeded" && r.image);
+  const approved = scored.filter(r => LIKES[r.id] === "like");
+  const rejected = scored.filter(r => LIKES[r.id] === "dislike");
+  closeConfirmSubmitModal();
+  const b = currentBatch();
+  const ref = b ? b.id.replace(/^ref-/, "") : "";
+  const approvedIds = approved.map(r => r.run_id || r.id);
+  const snippet = `Validated batch ${ref}: approved ${approved.length}/${scored.length} for production — run ids: ${approvedIds.join(", ") || "(none)"}. Push these to the ad account.`;
+  const body = document.getElementById("handoffBody");
+  const ta = document.getElementById("handoffSnippet");
+  if (body) body.innerHTML = `<strong style="color:var(--success);">${approved.length} approved</strong> · ${rejected.length} rejected. Copy the line below, switch back to your Claude session, and paste it — Claude takes the approved assets to the ad account.`;
+  if (ta) ta.value = snippet;
+  const status = document.getElementById("submitStatus");
+  if (status) status.textContent = `✓ ${approved.length} validated`;
+  document.getElementById("handoffModal").classList.add("open");
+}
+
+async function deleteResult(id) {
+  if (!IS_ADMIN) return;
+  const b = currentBatch(); if (!b) return;
+  const isPreset = b.preset_id && id.startsWith(`preset-${b.preset_id}-`);
+  const msg = isPreset
+    ? "Hide this output for every judge?\n\nThis writes to the shared override store and propagates on the next page load for everyone."
+    : "Delete this output? (Local batch — only affects your browser.)";
+  if (!confirm(msg)) return;
+  if (isPreset) {
+    const password = prompt("Admin password (re-enter to confirm):", "");
+    if (!password) return;
+    try {
+      const r = await fetch("api/preset-overrides", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${password}` },
+        body: JSON.stringify({ tile_id: id, action: "hide" }),
+      });
+      if (!r.ok) {
+        const j = await r.json().catch(() => ({}));
+        alert(`Hide failed: ${j.message || r.status}`);
+        return;
+      }
+      const j = await r.json();
+      HIDDEN_TILES = new Set(j.hidden || []);
+    } catch (e) {
+      alert(`Hide failed: ${e.message}`);
+      return;
+    }
+  }
+  b.results = b.results.filter(r => r.id !== id);
+  if (b.likes && b.likes[id]) delete b.likes[id];
+  if (b.feedback && b.feedback[id]) delete b.feedback[id];
+  saveBatches();
+  renderResults();
+  renderScoreSummary();
+  renderBatchPills();
+}
+
+/* ---- Recover orphaned tiles ----
+   Stopped / failed tiles still carry their Runflow run_id (dispatchOneAttempt
+   persists it the moment Runflow accepts the request). The server-side worker
+   keeps going even after the local poller is killed, so re-polling that run_id
+   often returns a finished image. */
+async function recoverTile(id) {
+  if (!IS_ADMIN) return;
+  const b = currentBatch(); if (!b) return;
+  const idx = b.results.findIndex(r => r.id === id);
+  if (idx < 0) return;
+  const r = b.results[idx];
+  if (!r.run_id) { alert("No run_id on this tile — use ↻ retry instead."); return; }
+  clearStopForBatch(b.id);
+  b.results[idx].status = "running";
+  b.results[idx].error = null;
+  saveBatches(); renderResults();
+  const res = await pollRunOnce(r.run_id, performance.now());
+  b.results[idx] = {
+    ...b.results[idx],
+    status: res.status,
+    image: res.images?.[0] || b.results[idx].image || null,
+    cost: res.cost ?? b.results[idx].cost,
+    duration_ms: res.duration_ms,
+    error: res.error,
+    raw_output: res.raw_output ?? b.results[idx].raw_output,
+  };
+  saveBatches();
+  renderAll();
+}
+
+/* Re-dispatch a tile that never got a run_id (the original /api/run call
+   failed or was stopped before it returned). */
+async function redispatchTile(id) {
+  if (!IS_ADMIN) return;
+  const b = currentBatch(); if (!b) return;
+  const idx = b.results.findIndex(r => r.id === id);
+  if (idx < 0) return;
+  const r = b.results[idx];
+  if (!r.payload) { alert("No payload saved for this tile — can't retry."); return; }
+  clearStopForBatch(b.id);
+  b.results[idx].status = "running";
+  b.results[idx].error = null;
+  saveBatches(); renderResults();
+  const res = await dispatchWithRetry(r.payload, b.id, idx);
+  b.results[idx] = {
+    ...b.results[idx],
+    status: res.status,
+    image: res.images?.[0] || null,
+    cost: res.cost,
+    duration_ms: res.duration_ms,
+    error: res.error,
+    run_id: res.run_id || b.results[idx].run_id,
+  };
+  saveBatches();
+  renderAll();
+}
+
+/* Batch-wide recover: scans the current batch for any tile that's stopped /
+   failed / timeout / cancelled, then either re-polls (run_id present) or
+   re-dispatches (payload saved, no run_id). Runs the same RUN_CONCURRENCY
+   worker pool as generate(). */
+async function recoverAllInBatch() {
+  if (!IS_ADMIN) return;
+  const b = currentBatch(); if (!b) return;
+  const RECOVERABLE = new Set(["stopped", "failed", "timeout", "cancelled"]);
+  const tasks = [];
+  b.results.forEach((r, i) => {
+    if (!RECOVERABLE.has(r.status)) return;
+    if (r.run_id) tasks.push({ kind: "resume", i, runId: r.run_id });
+    else if (r.payload) tasks.push({ kind: "dispatch", i, payload: r.payload });
+  });
+  if (!tasks.length) { alert("Nothing to recover in this batch."); return; }
+  clearStopForBatch(b.id);
+  tasks.forEach(t => { b.results[t.i].status = "running"; b.results[t.i].error = null; });
+  b.gen_state = { ...(b.gen_state || {}), status: "running", total: b.results.length, done: b.results.filter(r => r.status !== "pending" && r.status !== "running").length, error: null };
+  saveBatches();
+  if (CURRENT_BATCH_ID === b.id) { renderResults(); renderGenerateControls(); }
+  renderBatchPills();
+  const targetBatchId = b.id;
+  let cursor = 0;
+  async function worker() {
+    while (cursor < tasks.length) {
+      if (isStopRequestedFor(targetBatchId)) return;
+      const t = tasks[cursor++];
+      const res = t.kind === "resume"
+        ? await pollRunOnce(t.runId, performance.now())
+        : await dispatchWithRetry(t.payload, targetBatchId, t.i);
+      const target = BATCHES.find(x => x.id === targetBatchId); // re-resolve in case batches mutated
+      if (!target) return;
+      target.results[t.i] = {
+        ...target.results[t.i],
+        status: res.status,
+        image: res.images?.[0] || target.results[t.i].image || null,
+        cost: res.cost ?? target.results[t.i].cost,
+        duration_ms: res.duration_ms,
+        error: res.error,
+        run_id: res.run_id || target.results[t.i].run_id,
+        raw_output: res.raw_output ?? target.results[t.i].raw_output,
+      };
+      target.gen_state.done = target.results.filter(r => r.status !== "pending" && r.status !== "running").length;
+      saveBatches();
+      if (CURRENT_BATCH_ID === targetBatchId) renderResults();
+      renderBatchPills();
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(RUN_CONCURRENCY, tasks.length) }, () => worker()));
+  const target = BATCHES.find(x => x.id === targetBatchId);
+  if (target) {
+    target.gen_state.status = isStopRequestedFor(targetBatchId) ? "stopped" : "done";
+    clearStopForBatch(targetBatchId);
+    saveBatches();
+  }
+  renderAll();
+}
+
+/* ---- Lightbox with prev/next navigation + rating ---- */
+let LIGHTBOX_IDX = null;
+function visibleResultIndices() {
+  // Only succeeded + has image — navigate within actually-viewable tiles
+  const idxs = [];
+  RESULTS.forEach((r, i) => { if (r.status === "succeeded" && r.image) idxs.push(i); });
+  return idxs;
+}
+function openLightbox(idx) {
+  const visible = visibleResultIndices();
+  if (!visible.includes(idx)) {
+    if (!visible.length) return;
+    idx = visible[0];
+  }
+  LIGHTBOX_IDX = idx;
+  updateLightbox();
+  document.getElementById("lightbox").classList.add("open");
+}
+function closeLightbox() {
+  document.getElementById("lightbox").classList.remove("open");
+  LIGHTBOX_IDX = null;
+}
+function lightboxBgClick(e) {
+  // Close only when clicking the dimmed background (not the image or buttons)
+  if (e.target.id === "lightbox" || e.target.classList.contains("lb-stage")) closeLightbox();
+}
+function lightboxNav(dir) {
+  const visible = visibleResultIndices();
+  if (!visible.length) return;
+  const pos = visible.indexOf(LIGHTBOX_IDX);
+  const next = (pos + dir + visible.length) % visible.length;
+  LIGHTBOX_IDX = visible[next];
+  updateLightbox();
+}
+function updateLightbox() {
+  const r = RESULTS[LIGHTBOX_IDX];
+  if (!r) return;
+  document.getElementById("lightboxImg").src = r.image;
+  const visible = visibleResultIndices();
+  const pos = visible.indexOf(LIGHTBOX_IDX) + 1;
+  const _cost = (r.cost != null && !isNaN(parseFloat(r.cost))) ? ` · $${parseFloat(r.cost).toFixed(3)}` : "";
+  const _dur = (r.duration_ms != null && !isNaN(parseFloat(r.duration_ms))) ? ` · ${(parseFloat(r.duration_ms)/1000).toFixed(1)}s` : "";
+  const _lbl = (r.hero_idx != null) ? `Hero ${r.hero_idx} · Angle ${r.cut_idx} · ${r.format}` : (r.label || r.format || "");
+  document.getElementById("lightboxCaption").innerHTML =
+    `<strong>${pos}/${visible.length}</strong>` + (_lbl ? ` · ${_lbl}` : "") + _cost + _dur;
+  updateLightboxRateButtons();
+}
+function updateLightboxRateButtons() {
+  const r = RESULTS[LIGHTBOX_IDX];
+  if (!r) return;
+  const rating = LIKES[r.id] || "";
+  document.querySelector(".lb-like").classList.toggle("active", rating === "like");
+  document.querySelector(".lb-dislike").classList.toggle("active", rating === "dislike");
+}
+function rateCurrent(value) {
+  const r = RESULTS[LIGHTBOX_IDX];
+  if (!r) return;
+  rate(r.id, value);
+}
+document.addEventListener("keydown", (e) => {
+  if (LIGHTBOX_IDX == null) return;
+  // Ignore keystrokes while the user is typing in an input/textarea or while
+  // any modal is open — otherwise typing "d" or "l" in the feedback textarea
+  // (or any other text field) routes to rateCurrent() and wipes the field.
+  const t = e.target;
+  if (t && (t.tagName === "TEXTAREA" || t.tagName === "INPUT" || t.isContentEditable)) return;
+  if (document.querySelector(".modal-overlay.open")) return;
+  if (e.key === "Escape") closeLightbox();
+  else if (e.key === "ArrowLeft") lightboxNav(-1);
+  else if (e.key === "ArrowRight") lightboxNav(1);
+  else if (e.key.toLowerCase() === "l") rateCurrent("like");
+  else if (e.key.toLowerCase() === "d") rateCurrent("dislike");
+});
+
+
+/* ---- Form events ---- */
+function attachFormEvents() {
+  if (!document.getElementById("brandColor1")) return; // form removed in asset-validation view
+  ["brandColor1","brandColor2","brandFont"].forEach(id => {
+    document.getElementById(id).addEventListener("input", () => {
+      if (id === "brandColor1") document.getElementById("swatch1").style.background = document.getElementById("brandColor1").value;
+      if (id === "brandColor2") document.getElementById("swatch2").style.background = document.getElementById("brandColor2").value;
+    });
+  });
+  document.getElementById("formatChips").addEventListener("click", (e) => {
+    if (!e.target.classList.contains("chip")) return;
+    e.target.classList.toggle("active");
+  });
+  document.getElementById("cutsList").addEventListener("input", () => {});
+  document.getElementById("modeToggleBtn").addEventListener("click", () => {
+    if (STEP1_MODE === "preset") enterCustomMode();
+    else returnToPresetMode();
+  });
+}
+
+/* ---- Boot ---- */
+/* After a refresh, the Runflow worker is still chugging server-side even
+   though the in-tab JS loop is gone. Find every batch with results still
+   marked running AND a persisted run_id — resume polling those. Anything
+   "pending" with no run_id never got dispatched, so re-dispatch it. */
+async function resumeOrphanedRuns() {
+  const stale = BATCHES.filter(b => b.gen_state?.status === "running");
+  if (!stale.length) return;
+  for (const batch of stale) {
+    const targetBatch = batch;
+    const targetBatchId = batch.id;
+    clearStopForBatch(targetBatchId);
+    // Reset any "pending" or in-flight "running" without a run_id back to pending
+    // so the worker can pick them up fresh. Tiles with a run_id stay marked
+    // running and we attach polling to them.
+    const toDispatch = []; // {idx, payload}
+    const toResume = [];   // {idx, runId}
+    targetBatch.results.forEach((r, idx) => {
+      if (r.status === "succeeded" || r.status === "failed" || r.status === "timeout" || r.status === "cancelled" || r.status === "stopped" || r.status === "partial_succeeded") return;
+      if (r.run_id) toResume.push({ idx, runId: r.run_id });
+      else {
+        r.status = "pending";
+        // The payload was preserved in the result item at generate-time
+        if (r.payload) toDispatch.push({ idx, payload: r.payload });
+      }
+    });
+    saveBatches();
+    renderAll();
+
+    // Kick a worker pool that handles BOTH resumes and fresh dispatches.
+    // Each "task" knows whether to poll an existing run_id or dispatch fresh.
+    const tasks = [
+      ...toResume.map(t => ({ kind: "resume", ...t })),
+      ...toDispatch.map(t => ({ kind: "dispatch", ...t })),
+    ];
+    let cursor = 0;
+    async function worker() {
+      while (cursor < tasks.length) {
+        if (isStopRequestedFor(targetBatchId)) return;
+        const t = tasks[cursor++];
+        const idx = t.idx;
+        targetBatch.results[idx].status = "running";
+        saveBatches();
+        if (CURRENT_BATCH_ID === targetBatchId) renderResults();
+        let res;
+        if (t.kind === "resume") {
+          res = await pollRun(t.runId, targetBatchId, performance.now());
+        } else {
+          res = await dispatchWithRetry(t.payload, targetBatchId, idx);
+        }
+        targetBatch.results[idx] = {
+          ...targetBatch.results[idx],
+          status: res.status,
+          image: res.images?.[0] || null,
+          cost: res.cost,
+          duration_ms: res.duration_ms,
+          error: res.error,
+          run_id: res.run_id,
+        };
+        targetBatch.gen_state.done = targetBatch.results.filter(r => r.status !== "pending" && r.status !== "running").length;
+        saveBatches();
+        if (CURRENT_BATCH_ID === targetBatchId) { renderResults(); renderBatchPills(); }
+        else { renderBatchPills(); }
+      }
+    }
+    // Fire-and-forget — let the workers run in the background while boot continues.
+    Promise.all(Array.from({ length: Math.min(RUN_CONCURRENCY, tasks.length) }, () => worker()))
+      .then(() => {
+        targetBatch.gen_state.status = isStopRequestedFor(targetBatchId) ? "stopped" : "done";
+        clearStopForBatch(targetBatchId);
+        saveBatches();
+        renderAll();
+      });
+  }
+}
+
+async function loadRunsFromRef(ref, campaign) {
+  // Pull every run tagged with this client_ref token (one ad-creation batch) via
+  // the server proxy, and drop it in as the current batch so the grid renders it.
+  const batchId = `ref-${ref}`;
+  const label = campaign || ref;
+  let batch = BATCHES.find(b => b.id === batchId);
+  if (!batch) {
+    batch = { id: batchId, name: label, created_at: new Date().toISOString(), results: [], likes: {}, feedback: {}, gen_state: { status: "running", total: 0, done: 0, error: null } };
+    BATCHES.push(batch);
+  } else {
+    batch.name = label;
+    batch.gen_state = { status: "running", total: 0, done: 0, error: null };
+  }
+  CURRENT_BATCH_ID = batchId;
+  saveBatches(); saveCurrentBatch();
+  renderAll();
+  try {
+    const r = await fetch(`api/runs?ref=${encodeURIComponent(ref)}`, { cache: "no-store" });
+    const j = await r.json();
+    const runs = Array.isArray(j.runs) ? j.runs : [];
+    const target = BATCHES.find(b => b.id === batchId);
+    if (target) {
+      target.results = runs.map(run => ({
+        id: run.id, run_id: run.id, status: run.status, image: run.image,
+        cost: run.cost, duration_ms: run.duration_ms, format: run.format || "", label: run.label || "",
+      }));
+      target.gen_state = { status: "succeeded", total: target.results.length, done: target.results.filter(x => x.status === "succeeded").length, error: r.ok ? null : "load failed" };
+      saveBatches();
+    }
+  } catch (e) {
+    const target = BATCHES.find(b => b.id === batchId);
+    if (target) { target.gen_state = { status: "failed", total: 0, done: 0, error: String(e) }; saveBatches(); }
+  }
+  renderAll();
+}
+
+async function boot() {
+  // Don't kill orphaned runs — resume polling for any batch that was still
+  // running when the page was refreshed. The Runflow worker keeps going
+  // server-side; we just need to re-attach polling and re-render when results
+  // come in.
+  resumeOrphanedRuns(); // fire-and-forget, runs in background
+  // One-time brand-kit font migration. Keeps every other field intact; only
+  // swaps the brandFont value if the user still has the old "Outfit" default.
+  const stored = localStorage.getItem("runflow_inputs_c01_v2");
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      if (parsed.brandFont === "Outfit") {
+        parsed.brandFont = "Bricolage Grotesque";
+        localStorage.setItem("runflow_inputs_c01_v2", JSON.stringify(parsed));
+      }
+    } catch (_) { /* leave it alone */ }
+  }
+  const reloaded = localStorage.getItem("runflow_inputs_c01_v2");
+  writeForm(reloaded ? JSON.parse(reloaded) : (PRESETS[0]?.data || SAMPLE));
+  attachFormEvents();
+  ["hero1","hero2","hero3","brandLogo"].forEach(renderUploadPreview);
+  renderJudgeTag();
+  // Fetch the shared hidden-tile list before seeding the preset batch so the
+  // judge never briefly sees a tile that's been hidden by an admin elsewhere.
+  try {
+    const r = await fetch("api/preset-overrides", { cache: "no-store" });
+    if (r.ok) {
+      const j = await r.json();
+      HIDDEN_TILES = new Set(Array.isArray(j.hidden) ? j.hidden : []);
+    }
+  } catch (_) { /* offline / endpoint missing — degrade gracefully */ }
+  // This page only ever shows assets generated from a Claude Code session.
+  // Load the exact batch named in the URL (?ref= / ?batch=, optional &campaign=
+  // for the label). No bundled preset demo.
+  const _params = new URLSearchParams(location.search);
+  const _refParam = _params.get("ref") || _params.get("batch");
+  if (_refParam) {
+    await loadRunsFromRef(_refParam, _params.get("campaign") || "");
+  }
+  renderAll();
+  attachModalEvents();
+}
+
+function attachModalEvents() {
+  // Name/access modal removed — asset validation has no gate
+  // Feedback modal
+  document.getElementById("feedbackSubmit").addEventListener("click", saveCurrentFeedback);
+  document.getElementById("feedbackSkip").addEventListener("click", skipCurrentFeedback);
+  document.getElementById("feedbackText").addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) saveCurrentFeedback();
+  });
+  // Submit to Slack
+  document.getElementById("submitSlackBtn").addEventListener("click", maybeOpenConfirmSubmitModal);
+  document.getElementById("confirmSubmitGo").addEventListener("click", validateForProduction);
+  document.getElementById("confirmSubmitCancel").addEventListener("click", closeConfirmSubmitModal);
+  const _hc = document.getElementById("handoffCopy");
+  if (_hc) _hc.addEventListener("click", () => {
+    const ta = document.getElementById("handoffSnippet");
+    if (ta) { ta.select(); navigator.clipboard?.writeText(ta.value); _hc.textContent = "Copied ✓"; setTimeout(() => { _hc.textContent = "Copy for Claude"; }, 1500); }
+  });
+  const _hcl = document.getElementById("handoffClose");
+  if (_hcl) _hcl.addEventListener("click", () => document.getElementById("handoffModal").classList.remove("open"));
+}
+boot();
+</script>
+</body>
+</html>
