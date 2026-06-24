@@ -1477,7 +1477,7 @@
   <div class="lb-actions">
     <button class="lb-btn lb-dislike" onclick="event.stopPropagation(); rateCurrent('dislike')" title="Dislike (D)">👎 Dislike</button>
     <button class="lb-btn lb-like" onclick="event.stopPropagation(); rateCurrent('like')" title="Like (L)">👍 Like</button>
-    <button class="lb-btn lb-note" onclick="event.stopPropagation(); editNoteCurrent()" title="View / edit your note (N)">✎ Note</button>
+    <button class="lb-btn lb-note" onclick="event.stopPropagation(); editNoteCurrent()" title="Change note (N)" style="display:none;">✎ Change note</button>
   </div>
 </div>
 
@@ -2469,7 +2469,7 @@ function renderTile(r, idx) {
       <div class="tile-rate">
         <button class="dislike ${rating === "dislike" ? "active" : ""}" onclick="event.stopPropagation(); rate('${r.id}','dislike')" title="Dislike">👎</button>
         <button class="like ${rating === "like" ? "active" : ""}" onclick="event.stopPropagation(); rate('${r.id}','like')" title="Like">👍</button>
-        <button class="note ${FEEDBACK[r.id] ? "has-note" : ""}" onclick="event.stopPropagation(); editNote('${r.id}')" title="${FEEDBACK[r.id] ? "Edit your note" : "Add a note"}">✎</button>
+        ${FEEDBACK[r.id] ? `<button class="note has-note" onclick="event.stopPropagation(); editNote('${r.id}')" title="Change note">✎</button>` : ""}
       </div>
     </div>`;
 }
@@ -2555,7 +2555,7 @@ function renderJudgeTag() {
 let FEEDBACK_TARGET = null;
 let FEEDBACK_EDIT = false; // true when re-opening a note to view/edit (no rating change, no auto-advance)
 function editNote(id) { FEEDBACK_EDIT = true; openFeedbackModal(id, LIKES[id]); }
-function editNoteCurrent() { const r = RESULTS[LIGHTBOX_IDX]; if (r) editNote(r.id); }
+function editNoteCurrent() { const r = RESULTS[LIGHTBOX_IDX]; if (r && FEEDBACK[r.id]) editNote(r.id); }
 function openFeedbackModal(resultId, rating) {
   FEEDBACK_TARGET = resultId;
   const overlay = document.getElementById("feedbackModal");
@@ -2868,7 +2868,7 @@ function updateLightboxRateButtons() {
   document.querySelector(".lb-like").classList.toggle("active", rating === "like");
   document.querySelector(".lb-dislike").classList.toggle("active", rating === "dislike");
   const nb = document.querySelector(".lb-note");
-  if (nb) nb.classList.toggle("has-note", !!FEEDBACK[r.id]);
+  if (nb) { const has = !!FEEDBACK[r.id]; nb.classList.toggle("has-note", has); nb.style.display = has ? "" : "none"; }
 }
 function rateCurrent(value) {
   const r = RESULTS[LIGHTBOX_IDX];
