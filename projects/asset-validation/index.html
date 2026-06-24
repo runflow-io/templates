@@ -2572,17 +2572,19 @@ function closeFeedbackModal() {
   document.getElementById("feedbackModal").classList.remove("open");
   FEEDBACK_TARGET = null;
 }
-function advanceLightboxIfOpen() {
-  if (LIGHTBOX_IDX == null) return;
+function advanceReview(ratedId) {
+  // Move to the NEXT image after the one just rated — whether the user rated from
+  // the lightbox or from a grid tile (in which case we open the viewer on the next).
   const visible = visibleResultIndices();
-  if (visible.length <= 1) return;
-  const pos = visible.indexOf(LIGHTBOX_IDX);
-  // Stop on the last image instead of wrapping to the start.
-  if (pos < 0 || pos >= visible.length - 1) return;
-  lightboxNav(1);
+  if (!visible.length || !ratedId) return;
+  const ratedIdx = RESULTS.findIndex(r => r.id === ratedId);
+  const pos = visible.indexOf(ratedIdx);
+  if (pos < 0 || pos >= visible.length - 1) return; // last (or not viewable) — nothing next
+  openLightbox(visible[pos + 1]); // sets index + ensures the viewer is open
 }
 function saveCurrentFeedback() {
   if (!FEEDBACK_TARGET) return;
+  const ratedId = FEEDBACK_TARGET;
   const text = document.getElementById("feedbackText").value.trim();
   if (text) FEEDBACK[FEEDBACK_TARGET] = text;
   else delete FEEDBACK[FEEDBACK_TARGET];
@@ -2590,12 +2592,13 @@ function saveCurrentFeedback() {
   closeFeedbackModal();
   renderResults();
   renderScoreSummary();
-  advanceLightboxIfOpen();
+  advanceReview(ratedId);
   maybeOpenConfirmSubmitModal();
 }
 function skipCurrentFeedback() {
+  const ratedId = FEEDBACK_TARGET;
   closeFeedbackModal();
-  advanceLightboxIfOpen();
+  advanceReview(ratedId);
   maybeOpenConfirmSubmitModal();
 }
 
@@ -2633,11 +2636,15 @@ function validateForProduction() {
   closeConfirmSubmitModal();
   const b = currentBatch();
   const ref = b ? b.id.replace(/^ref-/, "") : "";
-  const approvedIds = approved.map(r => r.run_id || r.id);
-  const snippet = `Validated batch ${ref}: approved ${approved.length}/${scored.length} for production — run ids: ${approvedIds.join(", ") || "(none)"}. Push these to the ad account.`;
+  const line = r => `- ${r.run_id || r.id}${FEEDBACK[r.id] ? ` — ${FEEDBACK[r.id]}` : " — (no note)"}`;
+  const parts = [`Validated batch ${ref}: approved ${approved.length}/${scored.length} for production.`];
+  if (approved.length) parts.push("", "APPROVED (push to ad account):", ...approved.map(line));
+  if (rejected.length) parts.push("", "REJECTED (do not use):", ...rejected.map(line));
+  parts.push("", "Push the approved ones to the ad account, and use the per-image notes above when iterating.");
+  const snippet = parts.join("\n");
   const body = document.getElementById("handoffBody");
   const ta = document.getElementById("handoffSnippet");
-  if (body) body.innerHTML = `<strong style="color:var(--success);">${approved.length} approved</strong> · ${rejected.length} rejected. Copy the line below, switch back to your Claude session, and paste it — Claude takes the approved assets to the ad account.`;
+  if (body) body.innerHTML = `<strong style="color:var(--success);">${approved.length} approved</strong> · ${rejected.length} rejected, with your notes. Copy the block below, switch back to your Claude session, and paste it.`;
   if (ta) ta.value = snippet;
   const status = document.getElementById("submitStatus");
   if (status) status.textContent = `✓ ${approved.length} validated`;
@@ -3063,7 +3070,8 @@ function attachModalEvents() {
   document.getElementById("feedbackSubmit").addEventListener("click", saveCurrentFeedback);
   document.getElementById("feedbackSkip").addEventListener("click", skipCurrentFeedback);
   document.getElementById("feedbackText").addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) saveCurrentFeedback();
+    // Enter saves + jumps to the next image; Shift+Enter inserts a newline.
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); saveCurrentFeedback(); }
   });
   // Submit to Slack
   document.getElementById("submitSlackBtn").addEventListener("click", maybeOpenConfirmSubmitModal);
