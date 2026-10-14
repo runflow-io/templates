@@ -40,6 +40,38 @@ const PROJECTS_DIR = join(ROOT, "projects");
 const DIST_DIR = join(ROOT, "dist");
 const VERCEL_OUTPUT = join(ROOT, ".vercel", "output");
 
+// --- Untrusted-input guards -------------------------------------------------
+// A project folder name becomes a URL path AND is interpolated into shell build
+// commands (`npx vite build --base /<name>/ ...`) and the generated landing
+// HTML. Treat it as untrusted: allow a strict slug only; anything else is
+// skipped at discovery, which closes the command-injection vector.
+const VALID_PROJECT_NAME = /^[a-z0-9][a-z0-9-]*$/;
+const isValidProjectName = (name) => VALID_PROJECT_NAME.test(name);
+
+// HTML-escape text and double-quoted attribute values for the generated index.
+// Project names/titles/types and externals.json come from repo content (a
+// contributor PR), so never interpolate them raw — that would be stored XSS.
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+// Allow only internal (root-relative) paths and http(s) URLs as link targets —
+// blocks javascript:/data: scheme injection from externals.json.
+function safeHref(href) {
+  const h = String(href ?? "");
+  if (h.startsWith("/")) return h;
+  try {
+    const { protocol } = new URL(h);
+    if (protocol === "http:" || protocol === "https:") return h;
+  } catch { /* not a valid absolute URL */ }
+  return "#";
+}
+
 async function detectProjectType(projectDir) {
   const configPath = join(projectDir, "template.config.json");
   if (existsSync(configPath)) {
@@ -99,9 +131,15 @@ async function buildProject(name, projectDir, config) {
     case "static": {
       await cp(projectDir, outputTarget, {
         recursive: true,
+        // Denylist build junk + anything that looks like a secret, so a template
+        // can't accidentally publish credentials into the public output.
         filter: (src) => {
           const base = src.split("/").pop();
-          return !["node_modules", ".git", "template.config.json"].includes(base);
+          if (["node_modules", ".git", "template.config.json", ".npmrc", ".DS_Store"].includes(base)) return false;
+          if (base.startsWith(".env")) return false;         // .env, .env.local, .env.*
+          if (/\.(pem|key|log)$/i.test(base)) return false;  // keys, certs, logs
+          if (base === "id_rsa" || base === "id_ed25519") return false;
+          return true;
         },
       });
       break;
@@ -324,6 +362,10 @@ async function main() {
     const projectDir = join(PROJECTS_DIR, name);
     const s = await stat(projectDir);
     if (!s.isDirectory()) continue;
+    if (!isValidProjectName(name)) {
+      console.warn(`  [skip] "${name}" — folder names must match /^[a-z0-9][a-z0-9-]*$/ (lowercase, digits, hyphens). Skipping.`);
+      continue;
+    }
 
     const config = await detectProjectType(projectDir);
     projects.push({ name, config, dir: projectDir });
