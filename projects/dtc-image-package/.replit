@@ -1,0 +1,22 @@
+# Replit configuration — auto-runs `npm run dev` on the right host/port
+# so the preview iframe can reach the Vite dev server.
+
+run = "npm run dev"
+modules = ["nodejs-20"]
+
+hidden = [".config", "package-lock.json"]
+
+[nix]
+channel = "stable-24_05"
+
+[unitTest]
+language = "nodejs"
+
+[deployment]
+deploymentTarget = "static"
+publicDir = "dist"
+build = ["npm", "run", "build"]
+
+[[ports]]
+localPort = 5173
+externalPort = 80

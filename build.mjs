@@ -180,249 +180,37 @@ async function loadExternals() {
 }
 
 async function buildLandingPage(projects, externals) {
-  // Projects can opt into a named section by declaring `section` + `demos`
-  // in template.config.json. Each demo becomes its own card under the section
-  // header, instead of the parent project getting a single tile.
-  const sectionMap = new Map(); // section title -> cards[]
-  const defaultEntries = [];
+  /*
+   * The hub's landing page is hand-maintained at landing/index.html (with its
+   * assets at landing/assets/). This function copies both into the Vercel
+   * static output so templates.runflow.io/ serves the marketing landing.
+   *
+   * Why hand-maintained rather than auto-generated from project configs:
+   * the landing is a marketing page (hero copy, animated prompt, "why
+   * specialists" compare block, etc.), not a directory listing. Live template
+   * cards in the grid are edited inline as new templates ship. To preview
+   * locally, open landing/index.html directly in a browser — relative asset
+   * paths (assets/...) resolve correctly both from disk and from /.
+   *
+   * `projects` and `externals` are passed in for future use (e.g. emitting
+   * a JSON manifest the page could fetch) but are intentionally unused here.
+   */
+  void projects; void externals;
 
-  for (const p of projects) {
-    if (p.config?.section && Array.isArray(p.config.demos) && p.config.demos.length > 0) {
-      const list = sectionMap.get(p.config.section) || [];
-      for (const d of p.config.demos) {
-        const sub = (d.path || `${d.name}/`).replace(/^\/+/, "");
-        list.push({
-          name: d.name || d.title || "",
-          href: `/${p.name}/${sub}`,
-          type: "workflow",
-          title: d.title || d.description || "",
-          external: false,
-        });
-      }
-      sectionMap.set(p.config.section, list);
-      continue;
-    }
-    defaultEntries.push({
-      name: p.name,
-      href: `/${p.name}/`,
-      type: p.config?.type || "static",
-      title: p.config?.title || "",
-      external: false,
-    });
-  }
-  for (const e of externals) {
-    defaultEntries.push({
-      name: e.name,
-      href: e.url,
-      type: "external",
-      title: e.title || "",
-      external: true,
-    });
-  }
-  defaultEntries.sort((a, b) => a.name.localeCompare(b.name));
-  for (const list of sectionMap.values()) {
-    list.sort((a, b) => a.name.localeCompare(b.name));
-  }
-
-  const renderCard = (p) => `
-      <a href="${p.href}" class="project-card"${p.external ? ' target="_blank" rel="noopener"' : ""}>
-        <div class="project-name">${p.name}${p.external ? ' <svg class="external-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3H3v10h10v-3M9 2h5v5M14 2L7 9"/></svg>' : ""}</div>
-        <div class="project-meta">
-          <span class="project-type">${p.type}</span>
-          ${p.title ? `<span class="project-title">${p.title}</span>` : ""}
-        </div>
-      </a>`;
-
-  const sectionBlocks = [...sectionMap.entries()]
-    .map(([title, cards]) => `
-    <section class="proto-section">
-      <h2 class="section-title">${title}</h2>
-      <div class="project-grid">
-        ${cards.map(renderCard).join("\n")}
-      </div>
-    </section>`)
-    .join("\n");
-
-  const defaultBlock = defaultEntries.length > 0
-    ? `<div class="project-grid">${defaultEntries.map(renderCard).join("\n")}</div>`
-    : `<div class="empty-state">No templates yet.<br>Add a folder under <code>projects/</code> to create one.</div>`;
-
-  const totalCount = defaultEntries.length + [...sectionMap.values()].reduce((a, l) => a + l.length, 0);
-
-  const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Runflow Templates</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      -webkit-font-smoothing: antialiased;
-      background: #09090B;
-      color: #FAFAFA;
-      min-height: 100vh;
-      padding: 3rem 1.5rem;
-    }
-
-    .container {
-      max-width: 720px;
-      margin: 0 auto;
-    }
-
-    header {
-      margin-bottom: 3rem;
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .logo-mark {
-      width: 48px;
-      height: 14px;
-      border-radius: 7px;
-      background: linear-gradient(90deg, #09090B, #FBBF24);
-    }
-
-    h1 {
-      font-size: 1.5rem;
-      font-weight: 800;
-      letter-spacing: -0.04em;
-    }
-
-    h1 span {
-      color: #FBBF24;
-    }
-
-    .subtitle {
-      color: #A1A1AA;
-      font-family: 'Space Mono', ui-monospace, monospace;
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-
-    .proto-section {
-      margin-bottom: 2.5rem;
-    }
-
-    .section-title {
-      font-family: 'Space Mono', ui-monospace, monospace;
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #FBBF24;
-      margin-bottom: 0.875rem;
-      padding-bottom: 0.625rem;
-      border-bottom: 1px solid #27272A;
-    }
-
-    .project-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .project-card {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1rem 1.25rem;
-      background: #111113;
-      border: 1px solid #27272A;
-      border-radius: 10px;
-      text-decoration: none;
-      color: inherit;
-      transition: border-color 0.15s, background 0.15s;
-    }
-
-    .project-card:hover {
-      border-color: rgba(251, 191, 36, 0.2);
-      background: #18181B;
-    }
-
-    .project-name {
-      font-size: 0.9375rem;
-      font-weight: 600;
-      font-family: 'Space Mono', ui-monospace, monospace;
-      color: #FAFAFA;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .external-icon {
-      width: 14px;
-      height: 14px;
-      color: #71717A;
-      flex-shrink: 0;
-    }
-
-    .project-meta {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .project-type {
-      font-size: 0.6875rem;
-      color: #71717A;
-      font-family: 'Space Mono', ui-monospace, monospace;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-
-    .project-title {
-      font-size: 0.8125rem;
-      color: #A1A1AA;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 4rem 1rem;
-      color: #71717A;
-    }
-
-    .empty-state code {
-      background: #18181B;
-      padding: 0.2em 0.5em;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      font-family: 'Space Mono', ui-monospace, monospace;
-      color: #FBBF24;
-    }
-  </style>
-</head>
-<body>
-  <div class="container" id="content">
-    <header>
-      <div class="logo">
-        <div class="logo-mark"></div>
-      </div>
-      <h1>Run<span>flow</span> Templates</h1>
-      <p class="subtitle">${totalCount} template${totalCount !== 1 ? "s" : ""}</p>
-    </header>
-    ${sectionBlocks}
-    ${defaultBlock}
-  </div>
-</body>
-</html>`;
-
+  const landingDir = join(ROOT, "landing");
+  const landingHtml = join(landingDir, "index.html");
+  const landingAssets = join(landingDir, "assets");
   const staticDir = join(VERCEL_OUTPUT, "static");
+
+  if (!existsSync(landingHtml)) {
+    throw new Error(`landing/index.html not found at ${landingHtml}`);
+  }
+
   await mkdir(staticDir, { recursive: true });
-  await writeFile(join(staticDir, "index.html"), html);
+  await cp(landingHtml, join(staticDir, "index.html"));
+  if (existsSync(landingAssets)) {
+    await cp(landingAssets, join(staticDir, "assets"), { recursive: true });
+  }
 }
 
 async function generateVercelConfig(projects, crons = []) {
