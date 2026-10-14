@@ -55,8 +55,16 @@ jobs:
             echo "No tsconfig.json found — skipping type-check."
           else
             for cfg in "${present[@]}"; do
+              dir=$(dirname "$cfg")
               echo "Type-checking $cfg"
-              npx --yes --package=typescript tsc --noEmit -p "$cfg"
+              # A project's types (react, vite/client, ...) come from its own
+              # dependencies, so install them first and use its pinned tsc.
+              if [ -f "$dir/package-lock.json" ]; then
+                npm ci --prefix "$dir" --no-audit --no-fund
+                (cd "$dir" && npx --no-install tsc --noEmit -p tsconfig.json)
+              else
+                npx --yes --package=typescript tsc --noEmit -p "$cfg"
+              fi
             done
           fi
 
