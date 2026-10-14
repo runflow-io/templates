@@ -5,7 +5,8 @@
   "description": "Runflow templates and demos — build many small projects and deploy them together",
   "scripts": {
     "build": "node build.mjs",
-    "dev": "node dev.mjs"
+    "dev": "node dev.mjs",
+    "test": "node --test"
   },
   "devDependencies": {
     "esbuild": "^0.28.0"

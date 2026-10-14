@@ -1,8 +1,8 @@
 /**
- * Local dev server for the prototypes hub
+ * Local dev server for Runflow Templates
  *
- * Runs the build, then serves /dist on localhost:3000
- * with live reload on file changes.
+ * Runs the build, then serves .vercel/output/ (with a dist/ fallback) on
+ * localhost:3000, dispatching node-functions like the Vercel runtime does.
  */
 
 import { createServer } from "node:http";
@@ -32,9 +32,14 @@ if (DEV_LOAD_DOTENV) {
   }
   // Apply the fallback whether or not .env existed — clean checkouts shouldn't
   // 401 on local cron probes just because they haven't created a .env yet.
+  // Never apply it in CI/production: those must fail closed on a real secret.
   if (!process.env.CRON_SECRET) {
-    process.env.CRON_SECRET = "local-dev-cron-secret";
-    console.log("[dev] CRON_SECRET not set — using local fallback 'local-dev-cron-secret'");
+    if (process.env.CI || process.env.VERCEL || process.env.NODE_ENV === "production") {
+      console.warn("[dev] CRON_SECRET not set — refusing the dev fallback in CI/production.");
+    } else {
+      process.env.CRON_SECRET = "local-dev-cron-secret";
+      console.log("[dev] CRON_SECRET not set — using local fallback 'local-dev-cron-secret' (dev only)");
+    }
   }
 }
 
@@ -106,5 +111,5 @@ const server = createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`Dev server running at http://localhost:${PORT}`);
-  console.log(`Serving from: ${DIST}\n`);
+  console.log(`Serving ${join(VERCEL_OUTPUT, "static")} (fallback: ${DIST})\n`);
 });
